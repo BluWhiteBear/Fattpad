@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fattpad | Login</title>
+        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="login.css">
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+    </head>
+    <body>
+        <!-- Nav Bar -->
+        <div id="navbar-placeholder"></div>
+        
+        <main class="login-container">
+            <div class="login-card">
+                <h1>Welcome Back</h1>
+                <p class="login-subtitle">Sign in to continue to Fattpad</p>
+                
+                <div class="login-options">
+                    <!-- Google Sign-In Button -->
+                    <div id="g_id_onload"
+                        data-client_id="995112410757-ufm8h46chksqjogd23apepvau071ih65.apps.googleusercontent.com"
+                        data-callback="handleCredentialResponse"
+                        data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin"
+                        data-type="standard"
+                        data-size="large"
+                        data-theme="outline"
+                        data-text="sign_in_with"
+                        data-shape="rectangular"
+                        data-logo_alignment="left">
+                    </div>
+                </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <div id="footer-placeholder"></div>
+
+        <!-- Scripts -->
+        <script src="scripts/popComponents.js"></script>
+        <script src="scripts/login.js"></script>
+    </body>
+</html>

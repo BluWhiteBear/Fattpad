@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fattpad | Settings</title>
+        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="settings.css">
+        <script src="script.js" defer></script>
+    </head>
+    <body>
+        <!-- Nav Bar -->
+        <div id="navbar-placeholder"></div>
+        
+        <main class="settings-container">
+            <h1>Settings</h1>
+            
+            <div class="settings-section">
+                <h2>Theme</h2>
+                <div class="setting-item">
+                    <label for="theme-select">Choose Theme:</label>
+                    <select id="theme-select" class="settings-select">
+                        <option value="dark">Dark Theme</option>
+                        <option value="light">Light Theme</option>
+                        <option value="auto">Auto (System)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Reading Preferences</h2>
+                <div class="setting-item">
+                    <label for="font-size">Font Size:</label>
+                    <select id="font-size" class="settings-select">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="mature-content" checked>
+                        Show mature content
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Notifications</h2>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="email-notifications" checked>
+                        Email notifications
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="new-works-notifications" checked>
+                        New works from followed authors
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="comment-notifications" checked>
+                        Comments on my works
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Privacy</h2>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="public-profile" checked>
+                        Public profile
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="reading-history">
+                        Show reading history to others
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-actions">
+                <button class="settings-btn primary">Save Changes</button>
+                <button class="settings-btn secondary">Reset to Default</button>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <div id="footer-placeholder"></div>
+
+        <!-- Populates common components-->
+        <script src="scripts/popComponents.js"></script>
+    </body>
+</html>
