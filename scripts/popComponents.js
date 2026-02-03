@@ -4,12 +4,12 @@ document.addEventListener("DOMContentLoaded", function() {
     const navbarHTML = `
 <nav class="navbar">
 	<div class="navbar-logo">
-		<a href="/Fattpad">
+		<a href="index.html">
 			<span class="logo-text">fattpad</span>
 		</a>
 	</div>
 	<ul class="navbar-links">
-		<li><a href="/Fattpad">home</a></li>
+		<li><a href="index.html">home</a></li>
 		<li><a href="#explore">explore</a></li>
 		<li><a href="editor.html">write</a></li>
 		<li><a href="#library">library</a></li>
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <footer class="footer">
     <div class="footer-main">
         <ul class="footer-links">
-            <li><a href="/Fattpad">home</a></li>
+            <li><a href="index.html">home</a></li>
             <li><a href="#explore">explore</a></li>
             <li><a href="#write">write</a></li>
             <li><a href="#library">library</a></li>
