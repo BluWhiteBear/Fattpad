@@ -45,6 +45,7 @@ async function loadTabStories(tabType) {
 		
 		// Use the main getStories function which handles formatting
 		stories = await getStories(tabType, 9);
+		console.log('getStories returned:', stories); // Debug log
 
 		// Clear loading and render stories
 		worksGrid.innerHTML = '';
@@ -61,10 +62,15 @@ async function loadTabStories(tabType) {
 		}
 
 		// Render story cards
-		stories.forEach(story => {
-			// Stories are already formatted by getStories()
-			const storyCard = createStoryCard(story, tabType);
-			worksGrid.appendChild(storyCard);
+		stories.forEach((story, index) => {
+			console.log(`Processing story ${index}:`, story); // Debug log
+			try {
+				// Stories are already formatted by getStories()
+				const storyCard = createStoryCard(story, tabType);
+				worksGrid.appendChild(storyCard);
+			} catch (error) {
+				console.error(`Error creating card for story ${index}:`, error, story);
+			}
 		});
 
 	} catch (error) {
@@ -86,6 +92,8 @@ async function loadTabStories(tabType) {
  * @returns {HTMLElement} Story card element
  */
 function createStoryCard(story, tabType) {
+	console.log('createStoryCard called with:', story, 'tabType:', tabType); // Debug log
+	
 	const card = document.createElement('div');
 	card.className = 'work-card';
 	card.style.cursor = 'pointer';
