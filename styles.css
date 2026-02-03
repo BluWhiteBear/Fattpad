@@ -581,6 +581,10 @@ main {
     text-decoration: none;
 }
 
+.logo-img {
+    height: 40px;
+}
+
 .navbar-logo a {
     text-decoration: none;
 }
