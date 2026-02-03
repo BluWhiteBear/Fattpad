@@ -1,6 +1,6 @@
 
 // Tab switching logic for home page
-import { getNewStories, getPopularStories, getTopStories, formatStoryForDisplay } from './getStories.js';
+import { getStories } from './getStories.js';
 
 document.addEventListener('DOMContentLoaded', function() {
 	const tabBtns = document.querySelectorAll('.tab-btn');
@@ -43,18 +43,8 @@ async function loadTabStories(tabType) {
 	try {
 		let stories = [];
 		
-		switch(tabType) {
-			case 'popular':
-				stories = await getPopularStories();
-				break;
-			case 'top':
-				stories = await getTopStories();
-				break;
-			case 'new':
-			default:
-				stories = await getNewStories();
-				break;
-		}
+		// Use the main getStories function which handles formatting
+		stories = await getStories(tabType, 9);
 
 		// Clear loading and render stories
 		worksGrid.innerHTML = '';
