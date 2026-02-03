@@ -5,15 +5,18 @@ document.addEventListener("DOMContentLoaded", function() {
     const currentPath = window.location.pathname;
     const isInPagesDirectory = currentPath.includes('/pages/');
     
-    // For GitHub Pages and local development
-    let pathPrefix = '';
+    // Define path prefixes for different types of links
+    let rootPath = '';        // For going to index.html and assets
+    let pagesPath = '';       // For going to pages
     
     if (isInPagesDirectory) {
-        // If we're in a pages subdirectory, go up one level
-        pathPrefix = '../';
+        // If we're in a pages subdirectory
+        rootPath = '../';     // Go up to access index.html and assets
+        pagesPath = '';       // Stay in current directory for other pages
     } else {
-        // If we're in the root, use relative paths
-        pathPrefix = '';
+        // If we're in the root
+        rootPath = '';        // Stay in current directory for index.html and assets  
+        pagesPath = 'pages/'; // Go down into pages directory
     }
     
     const navbarHTML = `
@@ -27,22 +30,22 @@ document.addEventListener("DOMContentLoaded", function() {
 	
 	<!-- Logo (centered on mobile, left on desktop) -->
 	<div class="navbar-logo">
-		<a href="${pathPrefix}index.html">
-			<img src="${pathPrefix}img/fattpad_logo_1.png" alt="Fattpad Logo" class="logo-img" style="height: 30px;">
+		<a href="${rootPath}index.html">
+			<img src="${rootPath}img/fattpad_logo_1.png" alt="Fattpad Logo" class="logo-img" style="height: 30px;">
 		</a>
 	</div>
 	
 	<!-- Desktop navigation links -->
 	<ul class="navbar-links">
-		<li><a href="${pathPrefix}index.html">home</a></li>
+		<li><a href="${rootPath}index.html">home</a></li>
 		<li><a href="#explore">explore</a></li>
-		<li><a href="${pathPrefix}pages/editor.html">write</a></li>
+		<li><a href="${pagesPath}editor.html">write</a></li>
 		<li><a href="#library">library</a></li>
 	</ul>
 	
 	<!-- Desktop actions -->
 	<div class="navbar-actions">
-		<button class="navbar-btn" onclick="window.location.href='${pathPrefix}pages/login.html'">log in</button>
+		<button class="navbar-btn" onclick="window.location.href='${pagesPath}login.html'">log in</button>
 		<button class="profile-btn" style="display: none;">
 			<img alt="profile" class="profile-img">
 		</button>
@@ -51,12 +54,12 @@ document.addEventListener("DOMContentLoaded", function() {
 	<!-- Mobile navigation dropdown -->
 	<div class="mobile-nav-dropdown" id="mobileNavDropdown">
 		<div class="mobile-nav-content">
-			<a href="${pathPrefix}index.html" class="mobile-nav-item">home</a>
+			<a href="${rootPath}index.html" class="mobile-nav-item">home</a>
 			<a href="#explore" class="mobile-nav-item">explore</a>
-			<a href="${pathPrefix}pages/editor.html" class="mobile-nav-item">write</a>
+			<a href="${pagesPath}editor.html" class="mobile-nav-item">write</a>
 			<a href="#library" class="mobile-nav-item">library</a>
 			<div class="mobile-nav-divider"></div>
-			<button class="mobile-nav-btn" onclick="window.location.href='${pathPrefix}pages/login.html'">log in</button>
+			<button class="mobile-nav-btn" onclick="window.location.href='${pagesPath}login.html'">log in</button>
 			<button class="mobile-profile-btn" style="display: none;">
 				<img alt="profile" class="mobile-profile-img">
 				<span>profile</span>
@@ -69,11 +72,11 @@ document.addEventListener("DOMContentLoaded", function() {
 <footer class="footer">
     <div class="footer-main">
         <ul class="footer-links">
-            <li><a href="${pathPrefix}index.html">home</a></li>
+            <li><a href="${rootPath}index.html">home</a></li>
             <li><a href="#explore">explore</a></li>
-            <li><a href="#write">write</a></li>
+            <li><a href="${pagesPath}editor.html">write</a></li>
             <li><a href="#library">library</a></li>
-            <li><a href="#profile">profile</a></li>
+            <li><a href="${pagesPath}profile.html">profile</a></li>
             <li class="footer-logout" style="display: none;"><a href="#" onclick="logout(); return false;">logout</a></li>
         </ul>
     </div>
