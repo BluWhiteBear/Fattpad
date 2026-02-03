@@ -28,49 +28,45 @@
             <!-- Title and Cover Preview Row -->
             <div class="title-cover-row">
                 <div class="cover-preview-section">
-                    <div class="cover-preview" id="cover-preview" title="Click to add cover image">Click to add cover image</div>
+                    <div class="cover-preview" id="cover-preview" title="click to add cover image"></div>
                     <input type="hidden" id="cover-url">
                 </div>
                 <div class="title-description-section">
-                    <input type="text" id="story-title" placeholder="Story Title" class="title-input">
+                    <input type="text" id="story-title" placeholder="story title" class="title-input">
                     <div class="description-wrapper">
-                        <textarea id="story-description" placeholder="Write a brief description or excerpt of your story..." class="description-input" maxlength="500"></textarea>
+                        <textarea id="story-description" placeholder="write a brief description or excerpt of your story..." class="description-input" maxlength="500"></textarea>
                         <div class="char-counter" id="description-counter">0/500</div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Story metadata section -->
-            <div class="story-metadata-section">
-                <div class="metadata-row">
-                
-                <div class="metadata-row">
-                    <div class="tags-section">
-                        <label for="story-genres">Tags:</label>
-                        <input type="text" id="story-genres" placeholder="Add tags (e.g., Romance, Fantasy, Drama)" class="genres-input">
-                        <div class="genres-tags" id="genres-tags"></div>
-                    </div>
-                </div>
+        </div>
+        
+        <div class="editor-main">
+            <textarea id="story-content"></textarea>
+        </div>
+        
+        <!-- Tags and Publishing Section -->
+        <div class="editor-bottom">
+            <div class="tags-section">
+                <label for="story-genres">tags:</label>
+                <input type="text" id="story-genres" placeholder="add tags (e.g., romance, fantasy, drama)" class="genres-input">
+                <div class="genres-tags" id="genres-tags"></div>
             </div>
             
             <div class="editor-controls">
                 <select id="content-rating-select">
-                    <option value="E">Everyone</option>
-                    <option value="T">Teen</option>
-                    <option value="M">Mature</option>
+                    <option value="E">everyone</option>
+                    <option value="T">teen</option>
+                    <option value="M">mature</option>
                 </select>
-                <button id="save-draft" class="btn secondary">Save Draft</button>
-                <button id="publish-story" class="btn primary">Publish</button>
+                <button id="save-draft" class="btn secondary">save draft</button>
+                <button id="publish-story" class="btn primary">publish</button>
             </div>
         </div>
         
-        <div class="editor-main">
-            <textarea id="story-content" placeholder="Start writing your story..."></textarea>
-        </div>
-        
         <div class="editor-footer">
-            <div class="word-count">Words: <span id="word-count">0</span></div>
-            <div class="save-status" id="save-status">Draft</div>
+            <div class="word-count">words: <span id="word-count">0</span></div>
+            <div class="save-status" id="save-status">draft</div>
         </div>
     </main>
     

@@ -65,9 +65,9 @@ async function initializeTinyMCE() {
     return new Promise((resolve) => {
         tinymce.init({
             selector: '#story-content',
-            height: 400,
-            min_height: 300,
-            max_height: 600,
+            height: 800,
+            min_height: 800,
+            max_height: 800,
             resize: 'both',
             menubar: false,
             plugins: [
