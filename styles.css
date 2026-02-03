@@ -38,6 +38,7 @@ main {
     border-radius: 12px;
     box-shadow: 0 2px 16px rgba(0,0,0,0.3);
     flex: 1;
+    box-sizing: border-box;
 }
 
 .tabs {
@@ -346,6 +347,43 @@ main {
 }
 
 /* Responsive improvements */
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+        margin: 0;
+    }
+    
+    .home-container {
+        margin: 20px 16px;
+        padding: 16px;
+        border-radius: 8px;
+        max-width: calc(100vw - 32px);
+        width: calc(100% - 32px);
+    }
+    
+    .works-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+        text-align: center;
+        margin-bottom: 24px;
+    }
+    
+    .tabs {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .tab-btn {
+        padding: 8px 20px;
+        font-size: 0.9rem;
+    }
+}
+
 @media (max-width: 600px) {
     .story-header {
         flex-direction: column;
@@ -361,6 +399,15 @@ main {
         gap: 4px;
         align-items: flex-start;
     }
+    
+    .home-container {
+        margin: 16px 12px;
+        padding: 12px;
+    }
+    
+    .work-card {
+        padding: 16px 12px;
+    }
 }
 
 /* Navbar Styles */
@@ -373,6 +420,9 @@ main {
     height: 60px;
     color: var(--text-primary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    box-sizing: border-box;
+    width: 100%;
+    overflow-x: auto;
 }
 
 .navbar-logo .logo-text {
@@ -452,6 +502,67 @@ main {
     height: 32px;
     border-radius: 50%;
     object-fit: cover;
+}
+
+/* Mobile navbar styles */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0 16px;
+        height: 56px;
+    }
+    
+    .navbar-logo .logo-text {
+        font-size: 1.3rem;
+    }
+    
+    .navbar-links {
+        gap: 16px;
+    }
+    
+    .navbar-links li a {
+        font-size: 0.9rem;
+    }
+    
+    .navbar-btn {
+        padding: 6px 14px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .navbar {
+        padding: 0 12px;
+        flex-wrap: nowrap;
+    }
+    
+    .navbar-links {
+        gap: 12px;
+    }
+    
+    .navbar-links li a {
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+    
+    .navbar-btn {
+        padding: 5px 12px;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+    
+    .navbar-actions {
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar-links {
+        display: none;
+    }
+    
+    .navbar {
+        justify-content: space-between;
+    }
 }
 
 /* Profile Dropdown Styles */
