@@ -1,9 +1,20 @@
 // Automatically load navbar component into pages
 document.addEventListener("DOMContentLoaded", function() {
     
-    // Detect if we're in a subdirectory (pages/) and adjust paths accordingly
-    const isInSubdir = window.location.pathname.includes('/pages/');
-    const pathPrefix = isInSubdir ? '../' : '';
+    // Simplified path detection for both local and GitHub Pages
+    const currentPath = window.location.pathname;
+    const isInPagesDirectory = currentPath.includes('/pages/');
+    
+    // For GitHub Pages and local development
+    let pathPrefix = '';
+    
+    if (isInPagesDirectory) {
+        // If we're in a pages subdirectory, go up one level
+        pathPrefix = '../';
+    } else {
+        // If we're in the root, use relative paths
+        pathPrefix = '';
+    }
     
     const navbarHTML = `
 <nav class="navbar">
