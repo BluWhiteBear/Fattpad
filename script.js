@@ -72,8 +72,8 @@ async function loadTabStories(tabType) {
 
 		// Render story cards
 		stories.forEach(story => {
-			const formattedStory = formatStoryForDisplay(story);
-			const storyCard = createStoryCard(formattedStory, tabType);
+			// Stories are already formatted by getStories()
+			const storyCard = createStoryCard(story, tabType);
 			worksGrid.appendChild(storyCard);
 		});
 
@@ -107,7 +107,7 @@ function createStoryCard(story, tabType) {
 			metadata = `${story.views.toLocaleString()} reads`;
 			break;
 		case 'top':
-			metadata = `❤️ ${story.likes.toLocaleString()}`;
+			metadata = `❤️ ${(story.likes || 0).toLocaleString()}`;
 			break;
 		case 'new':
 		default:
@@ -137,13 +137,13 @@ function createStoryCard(story, tabType) {
 			${coverImageHtml}
 		</div>
 		<div class="work-info">
-			<h3 class="work-title">${story.title}</h3>
-			<p class="work-author">by ${story.author}</p>
+			<h3 class="work-title">${story.title || 'Untitled'}</h3>
+			<p class="work-author">by ${story.author || 'Anonymous'}</p>
 			<p class="work-description">${story.description || 'No description available for this story.'}</p>
 			${tagsHtml}
 			<div class="work-meta">
 				<span class="work-date">${metadata}</span>
-				<span class="work-stats">${story.wordCount.toLocaleString()} words</span>
+				<span class="work-stats">${(story.wordCount || 0).toLocaleString()} words</span>
 			</div>
 		</div>
 	`;
