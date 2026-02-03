@@ -78,7 +78,7 @@ async function initializeTinyMCE() {
             toolbar: 'undo redo | blocks | ' +
                 'bold italic underline strikethrough | alignleft aligncenter ' +
                 'alignright alignjustify | bullist numlist outdent indent | ' +
-                'image | removeformat | help',
+                'image imageurl | removeformat | help',
             
             // Image handling configuration
             images_upload_handler: function (blobInfo, success, failure) {
@@ -169,9 +169,63 @@ async function initializeTinyMCE() {
                         }
                     }
                 });
+                
+                // Auto-convert image URLs to images
+                editor.on('KeyUp', function(e) {
+                    // Check if user pressed space or enter after typing a URL
+                    if (e.keyCode === 32 || e.keyCode === 13) {
+                        convertImageUrls(editor);
+                    }
+                });
+                
+                // Also check on paste
+                editor.on('PastePostProcess', function(e) {
+                    setTimeout(() => convertImageUrls(editor), 100);
+                });
+                
+                // Add custom command for inserting image from URL
+                editor.ui.registry.addButton('imageurl', {
+                    icon: 'image',
+                    tooltip: 'Insert Image from URL',
+                    onAction: function() {
+                        const url = prompt('Enter image URL:');
+                        if (url && isImageUrl(url)) {
+                            editor.insertContent(`<img src="${url}" alt="Image" style="max-width: 100%; height: auto; display: block; margin: 1em auto; border-radius: 4px;" />`);
+                        } else if (url) {
+                            alert('Please enter a valid image URL (jpg, jpeg, png, gif, webp, svg)');
+                        }
+                    }
+                });
             }
         });
     });
+}
+
+// Helper function to check if a URL is an image
+function isImageUrl(url) {
+    return /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?.*)?$/i.test(url);
+}
+
+// Function to automatically convert image URLs to image elements
+function convertImageUrls(editor) {
+    const content = editor.getContent();
+    const urlRegex = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?[^\s]*)?)/gi;
+    
+    let newContent = content.replace(urlRegex, function(match, url) {
+        // Check if the URL is already inside an img tag
+        const beforeUrl = content.substring(0, content.indexOf(url));
+        if (beforeUrl.includes('<img') && !beforeUrl.substring(beforeUrl.lastIndexOf('<img')).includes('>')) {
+            return match; // Don't convert if already in an img tag
+        }
+        
+        // Convert standalone image URL to img element
+        return `<img src="${url}" alt="Image" style="max-width: 100%; height: auto; display: block; margin: 1em auto; border-radius: 4px;" />`;
+    });
+    
+    if (newContent !== content) {
+        editor.setContent(newContent);
+        console.log('Auto-converted image URLs to images');
+    }
 }
 
 // Initialize Firebase
