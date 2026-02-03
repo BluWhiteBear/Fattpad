@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story - Fattpad</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/story.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="scripts/themeLoader.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <div id="navbar-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="story-page">
+        <div class="story-container" id="story-container">
+            <!-- Loading state -->
+            <div class="loading-spinner" id="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading story...</p>
+            </div>
+
+            <!-- Error state (hidden by default) -->
+            <div class="error-state" id="error" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2>Story Not Found</h2>
+                <p>The story you're looking for doesn't exist or has been removed.</p>
+                <a href="index.html" class="btn btn-primary">
+                    <i class="fas fa-home"></i>
+                    Back to Home
+                </a>
+            </div>
+
+            <!-- Story content (hidden by default) -->
+            <div id="story-display" style="display: none;">
+                <!-- Navigation -->
+                <div class="story-nav">
+                    <a href="index.html" class="back-link">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Stories
+                    </a>
+                </div>
+
+                <!-- Story Header with Cover -->
+                <div class="story-header">
+                    <div class="story-cover">
+                        <div class="cover-image" id="story-cover">
+                            <i class="fas fa-book"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="story-info">
+                        <h1 class="story-title" id="story-title">Story Title</h1>
+                        <div class="story-author" id="story-author">by Author Name</div>
+                        
+                        <div class="story-metadata">
+                            <span class="publish-date" id="published-date">
+                                <i class="fas fa-calendar"></i>
+                                Published Jan 1, 2024
+                            </span>
+                            <span class="view-count" id="view-count">
+                                <i class="fas fa-eye"></i>
+                                0 Views
+                            </span>
+                            <span class="word-count" id="word-count">
+                                <i class="fas fa-file-alt"></i>
+                                1,234 words
+                            </span>
+                            <span class="like-count-display" id="like-count-display">
+                                <i class="fas fa-heart"></i>
+                                0 Likes
+                            </span>
+                        </div>
+
+                        <div class="story-tags" id="story-tags">
+                            <span class="content-rating-tag" id="content-rating">RATING</span>
+                            <!-- Additional tags will be added here -->
+                        </div>
+
+                        <div class="story-description" id="story-description">
+                            Story description and excerpt will appear here...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Story Content -->
+                <div class="story-content-wrapper">
+                    <div class="chapter-header">
+                        <h2 class="chapter-title">Story Content</h2>
+                    </div>
+                    
+                    <article class="story-article">
+                        <div class="story-content" id="story-content">
+                            Story content will appear here...
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Story Actions -->
+                <div class="story-actions">
+                    <button class="action-btn like-btn" id="like-btn">
+                        <i class="fas fa-heart" id="like-icon"></i>
+                        <span id="like-text">Like</span>
+                        <span class="count" id="like-count">0</span>
+                    </button>
+                    <button class="action-btn share-btn" id="share-btn">
+                        <i class="fas fa-share"></i>
+                        <span>Share</span>
+                    </button>
+                    <button class="action-btn report-btn" id="report-btn">
+                        <i class="fas fa-flag"></i>
+                        <span>Report</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="scripts/story-viewer.js"></script>
+    <script src="scripts/popComponents.js"></script>
+    <script src="scripts/navAuth.js"></script>
+</body>
+</html>

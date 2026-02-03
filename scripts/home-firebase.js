@@ -94,21 +94,39 @@ function renderStories(stories, container) {
 function createStoryCard(story) {
     const card = document.createElement('div');
     card.className = 'work-card';
+    
+    // Prepare tags HTML
+    const tagsHtml = story.tags && story.tags.length > 0 
+        ? `<div class="work-tags">
+            ${story.tags.map(tag => `<span class="work-tag">${escapeHtml(tag)}</span>`).join('')}
+           </div>`
+        : '';
+    
+    // Prepare cover image HTML
+    const coverImageHtml = story.coverUrl 
+        ? `<div class="work-cover"><img src="${escapeHtml(story.coverUrl)}" alt="${escapeHtml(story.title)}" onerror="this.parentElement.innerHTML='<div class=\"work-placeholder\">📖</div>'"></div>`
+        : '<div class="work-cover"><div class="work-placeholder">📖</div></div>';
+    
+    // Use description if available, otherwise fall back to excerpt or content
+    const description = story.description || story.excerpt || story.content || '';
+    const displayText = truncateText(description, 120);
+    
     card.innerHTML = `
-        <div class="work-image">
-            <div class="work-placeholder">📖</div>
-        </div>
-        <div class="work-info">
-            <h3 class="work-title">${escapeHtml(story.title || 'Untitled')}</h3>
-            <p class="work-author">by ${escapeHtml(story.authorName || 'Anonymous')}</p>
-            <div class="work-stats">
-                <span class="word-count">${story.wordCount || 0} words</span>
-                <span class="rating">${story.contentRating || 'E'}</span>
-                ${story.likes ? `<span class="likes">❤️ ${story.likes}</span>` : ''}
-                ${story.views ? `<span class="views">👁️ ${story.views}</span>` : ''}
+        <div class="work-header">
+            ${coverImageHtml}
+            <div class="work-content">
+                <h3 class="work-title">${escapeHtml(story.title || 'Untitled')}</h3>
+                <p class="work-author">by ${escapeHtml(story.authorName || 'Anonymous')}</p>
+                <div class="work-stats">
+                    <span class="word-count">${story.wordCount || 0} words</span>
+                    <span class="rating">${story.contentRating || 'E'}</span>
+                    ${story.likes ? `<span class="likes">❤️ ${story.likes}</span>` : ''}
+                    ${story.views ? `<span class="views">👁️ ${story.views}</span>` : ''}
+                </div>
             </div>
-            <p class="work-excerpt">${escapeHtml(truncateText(story.excerpt || story.content || '', 100))}</p>
         </div>
+        <p class="work-description">${escapeHtml(displayText)}</p>
+        ${tagsHtml}
     `;
     
     card.addEventListener('click', () => {

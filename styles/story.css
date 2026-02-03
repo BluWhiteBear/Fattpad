@@ -1,0 +1,350 @@
+/* Clean Story Viewer Layout - Visual Layout Style */
+
+.story-page {
+    min-height: 100vh;
+    background: var(--bg-primary);
+}
+
+.story-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Main Story Display */
+#story-display {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Navigation */
+.story-nav {
+    margin-bottom: 20px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--link-color);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.back-link:hover {
+    color: var(--link-hover);
+}
+
+/* Story Header with Cover */
+.story-header {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 30px;
+    padding: 25px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+.story-cover {
+    flex-shrink: 0;
+}
+
+.cover-image {
+    width: 200px;
+    height: 280px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 48px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.story-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.story-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.story-author {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.story-metadata {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.story-metadata span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.story-metadata i {
+    width: 12px;
+    opacity: 0.7;
+}
+
+.story-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.content-rating-tag,
+.story-tag {
+    background: var(--accent-color);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.story-tag {
+    background: var(--tag-bg, #e3f2fd);
+    color: var(--tag-color, #1976d2);
+}
+
+.story-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent-color);
+}
+
+/* Story Content */
+.story-content-wrapper {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.chapter-header {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #764ba2 100%);
+    padding: 20px 25px;
+    color: white;
+}
+
+.chapter-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.story-article {
+    padding: 25px;
+}
+
+.story-content {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    font-family: 'Georgia', serif;
+}
+
+.story-content p {
+    margin-bottom: 1.2em;
+    text-align: justify;
+}
+
+.story-content p:last-child {
+    margin-bottom: 0;
+}
+
+/* Story Actions */
+.story-actions {
+    display: flex;
+    gap: 15px;
+    padding: 20px 25px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 100px;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn.liked {
+    background: #e91e63;
+    color: white;
+}
+
+.action-btn .count {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.action-btn:hover .count {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Loading States */
+.story-loading {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--bg-secondary);
+    border-top: 3px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+.story-error {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+.story-error h2 {
+    color: #f44336;
+    margin-bottom: 10px;
+}
+
+.story-error button {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: opacity 0.3s ease;
+}
+
+.story-error button:hover {
+    opacity: 0.9;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #story-display {
+        padding: 15px;
+    }
+    
+    .story-header {
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .cover-image {
+        width: 150px;
+        height: 210px;
+        align-self: center;
+        font-size: 36px;
+    }
+    
+    .story-title {
+        font-size: 24px;
+    }
+    
+    .story-metadata {
+        gap: 15px;
+    }
+    
+    .story-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .action-btn {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .story-container {
+        padding: 10px;
+    }
+    
+    .story-header {
+        padding: 15px;
+    }
+    
+    .cover-image {
+        width: 120px;
+        height: 168px;
+    }
+    
+    .story-title {
+        font-size: 20px;
+    }
+    
+    .story-metadata {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .story-article {
+        padding: 15px;
+    }
+    
+    .story-content {
+        font-size: 15px;
+    }
+}

@@ -4,6 +4,7 @@ let auth = null;
 let currentStory = null;
 let autoSaveTimer = null;
 let hasUnsavedChanges = false;
+let tinymceEditor = null;
 
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Editor DOM loaded, starting initialization...');
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('Initial auth check result:', existingUser);
     
     await initializeFirebase();
+    await initializeTinyMCE();
     initializeEditor();
     loadStoryFromURL();
     
@@ -20,10 +22,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     setTimeout(() => {
         const userData = localStorage.getItem('user');
         if (userData) {
-            console.log('Delayed auth check:', JSON.parse(userData));
+            console.log('🔄 Delayed auth check:', JSON.parse(userData));
             updateAuthUI(JSON.parse(userData));
         }
     }, 500);
+    
+    // Periodic auth state check to catch changes from other tabs
+    setInterval(() => {
+        const userData = localStorage.getItem('user');
+        const currentButtonText = document.getElementById('publish-story')?.textContent;
+        
+        if (userData && currentButtonText === 'Login to Publish') {
+            console.log('🔄 Detected auth state mismatch, updating UI');
+            updateAuthUI(JSON.parse(userData));
+        }
+    }, 2000);
 });
 
 // Check existing authentication state from other pages
@@ -47,6 +60,60 @@ function checkExistingAuth() {
     return null;
 }
 
+// Initialize TinyMCE Rich Text Editor
+async function initializeTinyMCE() {
+    return new Promise((resolve) => {
+        tinymce.init({
+            selector: '#story-content',
+            height: 400,
+            min_height: 300,
+            max_height: 600,
+            resize: 'both',
+            menubar: false,
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks | ' +
+                'bold italic underline strikethrough | alignleft aligncenter ' +
+                'alignright alignjustify | bullist numlist outdent indent | ' +
+                'removeformat | help',
+            content_style: `
+                body { 
+                    font-family: Georgia, serif; 
+                    font-size: 16px; 
+                    line-height: 1.7; 
+                    color: #333; 
+                    background-color: var(--bg-secondary, #fff);
+                    padding: 20px;
+                }
+                p { margin: 0 0 1.2em 0; }
+                h1, h2, h3, h4, h5, h6 { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+                    margin: 1.5em 0 0.5em 0; 
+                }
+            `,
+            skin: 'oxide',
+            content_css: false,
+            branding: false,
+            resize: false,
+            statusbar: false,
+            setup: function(editor) {
+                editor.on('init', function() {
+                    tinymceEditor = editor;
+                    resolve();
+                });
+                
+                editor.on('input change', function() {
+                    updateWordCount();
+                    markAsChanged();
+                });
+            }
+        });
+    });
+}
+
 // Initialize Firebase
 async function initializeFirebase() {
     try {
@@ -65,13 +132,13 @@ async function initializeFirebase() {
         
         // Replace with your actual Firebase config
         const firebaseConfig = {
-        apiKey: "AIzaSyA53SaCvEGgQmBkfc47twD3rmjbiegtBeo",
-        authDomain: "fattpad-700c6.firebaseapp.com",
-        projectId: "fattpad-700c6",
-        storageBucket: "fattpad-700c6.firebasestorage.app",
-        messagingSenderId: "766165381277",
-        appId: "1:766165381277:web:79523e259dbd81c3702474",
-        measurementId: "G-ELTHWYDTMH"
+            apiKey: "AIzaSyA53SaCvEGgQmBkfc47twD3rmjbiegtBeo",
+            authDomain: "fattpad-700c6.firebaseapp.com",
+            projectId: "fattpad-700c6",
+            storageBucket: "fattpad-700c6.firebasestorage.app",
+            messagingSenderId: "766165381277",
+            appId: "1:766165381277:web:79523e259dbd81c3702474",
+            measurementId: "G-ELTHWYDTMH"
         };
         
         console.log('🔧 Firebase config loaded:', firebaseConfig.projectId);
@@ -124,18 +191,71 @@ async function initializeFirebase() {
         
         console.log('🎉 Firebase initialized for editor');
         
-        // Since Firebase is configured but user might not be signed in to Firebase,
-        // let's also check and possibly sign them in automatically
+        // Automatically sign in to Firebase if user is logged in via Google OAuth
         const localUser = JSON.parse(localStorage.getItem('user') || 'null');
         if (localUser && !auth.currentUser) {
             console.log('💡 User logged in via Google OAuth but not Firebase auth');
-            console.log('   Consider implementing automatic Firebase sign-in');
+            console.log('🔄 Attempting automatic Firebase sign-in...');
+            
+            try {
+                // Import Firebase auth methods
+                const { GoogleAuthProvider, signInWithCredential } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                
+                // If we have a Google OAuth token, try to sign in to Firebase
+                if (localUser.access_token) {
+                    const credential = GoogleAuthProvider.credential(null, localUser.access_token);
+                    const result = await signInWithCredential(auth, credential);
+                    console.log('✅ Automatic Firebase sign-in successful:', result.user.email);
+                    showNotificationMessage('Connected to online publishing!', 'success');
+                } else {
+                    console.log('❌ No access token available for automatic sign-in');
+                    // Sign in user with custom token or email if available
+                    if (localUser.email) {
+                        console.log('📧 User email available, manual sign-in required for full online access');
+                    }
+                }
+            } catch (autoSignInError) {
+                console.log('❌ Automatic Firebase sign-in failed:', autoSignInError.message);
+                console.log('   User can still use local features and manual sign-in');
+            }
         }
     } catch (error) {
         console.error('Firebase initialization failed:', error);
         showNotificationMessage('Firebase not configured - working in local mode', 'warning');
         // Don't redirect, just work in local mode
     }
+}
+
+// Track changes - global function
+function markAsChanged() {
+    hasUnsavedChanges = true;
+    const saveStatus = document.getElementById('save-status');
+    if (saveStatus) {
+        saveStatus.textContent = 'Unsaved';
+        saveStatus.className = 'save-status draft';
+    }
+    
+    // Schedule auto-save
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(autoSave, 10000); // Auto-save after 10 seconds
+}
+
+// Word count update - global function for TinyMCE access
+function updateWordCount() {
+    const wordCountSpan = document.getElementById('word-count');
+    if (!wordCountSpan) return;
+    
+    let content = '';
+    if (tinymceEditor) {
+        // Get plain text content from TinyMCE
+        content = tinymceEditor.getContent({format: 'text'});
+    } else {
+        // Fallback to textarea if TinyMCE not ready
+        const contentTextarea = document.getElementById('story-content');
+        content = contentTextarea ? contentTextarea.value : '';
+    }
+    const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+    wordCountSpan.textContent = wordCount;
 }
 
 // Initialize editor functionality
@@ -148,37 +268,25 @@ function initializeEditor() {
     const publishBtn = document.getElementById('publish-story');
     const ratingSelect = document.getElementById('content-rating-select');
     
-    // Word count update
-    function updateWordCount() {
-        const content = contentTextarea.value;
-        const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
-        wordCountSpan.textContent = wordCount;
-    }
-    
-    // Track changes
-    function markAsChanged() {
-        hasUnsavedChanges = true;
-        saveStatus.textContent = 'Unsaved';
-        saveStatus.className = 'save-status draft';
-        
-        // Schedule auto-save
-        clearTimeout(autoSaveTimer);
-        autoSaveTimer = setTimeout(autoSave, 10000); // Auto-save after 10 seconds
-    }
-    
     // Event listeners
     titleInput.addEventListener('input', () => {
         updateWordCount();
         markAsChanged();
     });
     
+    // TinyMCE handles its own events, but we need a fallback for the textarea
     contentTextarea.addEventListener('input', () => {
-        updateWordCount();
-        markAsChanged();
+        if (!tinymceEditor) {
+            updateWordCount();
+            markAsChanged();
+        }
     });
-    
+
     saveDraftBtn.addEventListener('click', saveDraft);
     publishBtn.addEventListener('click', publishStory);
+    
+    // Initialize new metadata fields
+    initializeMetadataFields();
     
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -198,6 +306,157 @@ function initializeEditor() {
     
     // Initial word count
     updateWordCount();
+}
+
+// Initialize metadata fields functionality
+function initializeMetadataFields() {
+    const genresInput = document.getElementById('story-genres');
+    const coverUrlInput = document.getElementById('cover-url');
+    const coverPreview = document.getElementById('cover-preview');
+    const descriptionInput = document.getElementById('story-description');
+    const descriptionCounter = document.getElementById('description-counter');
+    
+    // Description character counter
+    if (descriptionInput && descriptionCounter) {
+        const updateCounter = () => {
+            const length = descriptionInput.value.length;
+            const maxLength = 500;
+            descriptionCounter.textContent = `${length}/${maxLength}`;
+            descriptionCounter.style.color = length > maxLength * 0.9 ? '#f44336' : 'var(--text-secondary)';
+        };
+        
+        descriptionInput.addEventListener('input', () => {
+            updateCounter();
+            markAsChanged();
+        });
+        
+        // Initialize counter
+        updateCounter();
+    }
+    
+    // Genres handling
+    if (genresInput) {
+        genresInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                addTag(genresInput.value.trim());
+                genresInput.value = '';
+            }
+        });
+        
+        genresInput.addEventListener('blur', () => {
+            if (genresInput.value.trim()) {
+                addTag(genresInput.value.trim());
+                genresInput.value = '';
+            }
+        });
+        
+        genresInput.addEventListener('input', markAsChanged);
+    }
+    
+    // Cover URL preview - click to add/change
+    if (coverPreview) {
+        coverPreview.style.cursor = 'pointer';
+        coverPreview.addEventListener('click', () => {
+            const currentUrl = coverUrlInput ? coverUrlInput.value : '';
+            const newUrl = prompt('Enter cover image URL (leave empty to remove):', currentUrl);
+            
+            if (newUrl !== null) { // User didn't cancel
+                if (coverUrlInput) {
+                    coverUrlInput.value = newUrl;
+                }
+                updateCoverPreview(newUrl, coverPreview);
+                markAsChanged();
+            }
+        });
+        
+        // Initialize preview with placeholder text
+        coverPreview.textContent = 'Click to add cover';
+    }
+}
+
+// Add tag
+function addTag(tag) {
+    if (!tag) return;
+    
+    const tagText = tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase();
+    const tagsContainer = document.getElementById('genres-tags');
+    
+    // Check if tag already exists
+    const existingTags = Array.from(tagsContainer.querySelectorAll('.genre-tag'));
+    if (existingTags.some(tagEl => tagEl.dataset.genre === tagText)) {
+        return; // Tag already added
+    }
+    
+    const tagElement = document.createElement('span');
+    tagElement.className = 'genre-tag';
+    tagElement.dataset.genre = tagText;
+    tagElement.innerHTML = `
+        ${tagText}
+        <span class="remove" onclick="removeTag('${tagText}')">&times;</span>
+    `;
+    
+    tagsContainer.appendChild(tagElement);
+    markAsChanged();
+}
+
+// Remove tag
+function removeTag(tag) {
+    const tagsContainer = document.getElementById('genres-tags');
+    const tagToRemove = tagsContainer.querySelector(`[data-genre="${tag}"]`);
+    if (tagToRemove) {
+        tagToRemove.remove();
+        markAsChanged();
+    }
+}
+
+// Get selected tags
+function getSelectedTags() {
+    const tagsContainer = document.getElementById('genres-tags');
+    const tagElements = tagsContainer.querySelectorAll('.genre-tag');
+    return Array.from(tagElements).map(tag => tag.dataset.genre);
+}
+
+// Update cover preview
+function updateCoverPreview(url, previewElement) {
+    if (!url.trim()) {
+        previewElement.style.backgroundImage = '';
+        previewElement.textContent = 'Cover preview';
+        previewElement.classList.remove('has-image');
+        return;
+    }
+    
+    // Test if the URL is valid by creating an image
+    const img = new Image();
+    img.onload = () => {
+        previewElement.style.backgroundImage = `url(${url})`;
+        previewElement.textContent = '';
+        previewElement.classList.add('has-image');
+    };
+    img.onerror = () => {
+        previewElement.style.backgroundImage = '';
+        previewElement.textContent = 'Invalid image URL';
+        previewElement.classList.remove('has-image');
+    };
+    img.src = url;
+}
+
+// Get story content from TinyMCE or fallback to textarea
+function getStoryContent() {
+    if (tinymceEditor) {
+        return tinymceEditor.getContent();
+    } else {
+        return document.getElementById('story-content').value;
+    }
+}
+
+// Set story content in TinyMCE or fallback to textarea
+function setStoryContent(content) {
+    if (tinymceEditor) {
+        tinymceEditor.setContent(content || '');
+    } else {
+        document.getElementById('story-content').value = content || '';
+    }
 }
 
 // Auto-save function
@@ -230,11 +489,21 @@ async function autoSave() {
 // Save draft
 async function saveDraft(showNotification = true) {
     const title = document.getElementById('story-title').value || 'Untitled Story';
-    const content = document.getElementById('story-content').value;
+    const content = getStoryContent();
     const rating = document.getElementById('content-rating-select').value;
+    const description = document.getElementById('story-description').value;
+    const coverUrl = document.getElementById('cover-url').value;
+    const tags = getSelectedTags();
     
     // Always try localStorage first as fallback
-    const localStoryId = saveToLocalStorage({ title, content, rating });
+    const localStoryId = saveToLocalStorage({ 
+        title, 
+        content, 
+        rating, 
+        description, 
+        coverUrl, 
+        tags 
+    });
     
     // Check if user is logged in (either through Firebase or existing auth)
     const firebaseUser = auth?.currentUser;
@@ -264,14 +533,30 @@ async function saveDraft(showNotification = true) {
         const storyId = currentStory?.id || generateStoryId();
         const userId = firebaseUser.uid;
         
+        // Calculate word count properly for HTML content
+        let wordCount = 0;
+        if (content) {
+            if (tinymceEditor) {
+                // Get plain text from TinyMCE for word count
+                const plainText = tinymceEditor.getContent({format: 'text'});
+                wordCount = plainText.trim() ? plainText.trim().split(/\s+/).length : 0;
+            } else {
+                // Fallback for plain text
+                wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+            }
+        }
+        
         const storyData = {
             title,
             content,
             contentRating: rating,
+            description: description.trim(),
+            tags: tags,
+            coverUrl: coverUrl.trim() || null,
             authorId: userId,
             authorName: firebaseUser.displayName || localStorageUser?.name || 'Anonymous',
             updatedAt: serverTimestamp(),
-            wordCount: content.trim() ? content.trim().split(/\s+/).length : 0,
+            wordCount: wordCount,
             isPublished: false,
             isDraft: true
         };
@@ -523,9 +808,31 @@ async function showPublishDialog() {
 
 // Firebase publishing function
 async function publishToFirebase() {
+    // Double-check authentication before proceeding
+    const firebaseUser = auth?.currentUser;
+    const localStorageUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+    const isLoggedIn = firebaseUser || localStorageUser;
+    
+    if (!isLoggedIn) {
+        showNotificationMessage('Authentication required. Please log in to publish online.', 'error');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
+        return;
+    }
+    
+    // Verify Firebase configuration
+    if (!db || !checkFirebaseConfiguration()) {
+        showNotificationMessage('Firebase not properly configured. Cannot publish online.', 'error');
+        return;
+    }
+    
     const title = document.getElementById('story-title').value || 'Untitled Story';
-    const content = document.getElementById('story-content').value;
+    const content = getStoryContent();
     const rating = document.getElementById('content-rating-select').value;
+    const description = document.getElementById('story-description').value;
+    const coverUrl = document.getElementById('cover-url').value;
+    const tags = getSelectedTags();
     
     if (!title.trim() || !content.trim()) {
         showNotificationMessage('Please add a title and content before publishing', 'error');
@@ -536,28 +843,41 @@ async function publishToFirebase() {
         return;
     }
     
-    const localStorageUser = JSON.parse(localStorage.getItem('user') || '{}');
     const storyId = generateStoryId();
     
     console.log('📝 Publishing story to Firebase...');
     console.log('   Story ID:', storyId);
-    console.log('   Author:', localStorageUser.name || 'Anonymous');
+    console.log('   Author:', localStorageUser?.name || 'Anonymous');
     
     try {
         const { collection, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        
+        // Calculate word count properly for HTML content
+        let wordCount = 0;
+        if (content) {
+            if (tinymceEditor) {
+                const plainText = tinymceEditor.getContent({format: 'text'});
+                wordCount = plainText.trim() ? plainText.trim().split(/\s+/).length : 0;
+            } else {
+                wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+            }
+        }
         
         const storyData = {
             id: storyId,
             title: title.trim(),
             content: content.trim(),
             excerpt: content.substring(0, 200),
+            description: description.trim() || content.substring(0, 200),
             contentRating: rating,
+            tags: tags,
+            coverUrl: coverUrl.trim() || null,
             authorName: localStorageUser.name || 'Anonymous Author',
             authorEmail: localStorageUser.email || 'anonymous@fattpad.local',
             authorPicture: localStorageUser.picture || null,
             publishedAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-            wordCount: content.trim().split(/\s+/).length,
+            wordCount: wordCount,
             views: 0,
             likes: 0,
             isPublished: true,
@@ -651,14 +971,44 @@ async function loadStoryFromURL() {
 }
 
 function populateEditor(storyData) {
-    // Populate form
+    // Populate basic fields
     document.getElementById('story-title').value = storyData.title || '';
-    document.getElementById('story-content').value = storyData.content || '';
     document.getElementById('content-rating-select').value = storyData.contentRating || 'E';
     
+    // Populate new metadata fields
+    if (storyData.description) {
+        document.getElementById('story-description').value = storyData.description;
+    }
+    
+    if (storyData.coverUrl) {
+        document.getElementById('cover-url').value = storyData.coverUrl;
+        updateCoverPreview(storyData.coverUrl, document.getElementById('cover-preview'));
+    }
+    
+    // Populate tags
+    if (storyData.tags && storyData.tags.length > 0) {
+        const tagsContainer = document.getElementById('genres-tags');
+        tagsContainer.innerHTML = '';
+        storyData.tags.forEach(tag => addTag(tag));
+    } else if (storyData.genres && storyData.genres.length > 0) {
+        // Backward compatibility with old 'genres' field
+        const tagsContainer = document.getElementById('genres-tags');
+        tagsContainer.innerHTML = '';
+        storyData.genres.forEach(genre => addTag(genre));
+    }
+    
+    // Set content using TinyMCE or fallback
+    setStoryContent(storyData.content || '');
+    
     // Update word count
-    const wordCount = storyData.content ? storyData.content.trim().split(/\s+/).length : 0;
-    document.getElementById('word-count').textContent = wordCount;
+    updateWordCount();
+    
+    // Update character counter if description exists
+    const descriptionCounter = document.getElementById('description-counter');
+    if (descriptionCounter) {
+        const descLength = (storyData.description || '').length;
+        descriptionCounter.textContent = `${descLength}/500`;
+    }
 }
 
 // Utility functions
@@ -671,11 +1021,24 @@ function saveToLocalStorage(storyData) {
     const storyId = currentStory?.id || generateStoryId();
     const existingIndex = stories.findIndex(s => s.id === storyId);
     
+    // Calculate word count properly for HTML content
+    let wordCount = 0;
+    if (storyData.content) {
+        if (tinymceEditor) {
+            // Get plain text from TinyMCE for word count
+            const plainText = tinymceEditor.getContent({format: 'text'});
+            wordCount = plainText.trim() ? plainText.trim().split(/\s+/).length : 0;
+        } else {
+            // Fallback for plain text
+            wordCount = storyData.content.trim() ? storyData.content.trim().split(/\s+/).length : 0;
+        }
+    }
+    
     const storyToSave = {
         id: storyId,
         ...storyData,
         updatedAt: Date.now(),
-        wordCount: storyData.content ? storyData.content.trim().split(/\s+/).length : 0
+        wordCount: wordCount
     };
     
     if (existingIndex >= 0) {
@@ -697,7 +1060,6 @@ function saveToLocalStorage(storyData) {
 
 function updateAuthUI(user) {
     const publishBtn = document.getElementById('publish-story');
-    const userStatus = document.getElementById('user-status');
     
     console.log('updateAuthUI called with:', user);
     
@@ -708,26 +1070,20 @@ function updateAuthUI(user) {
         publishBtn.textContent = 'Publish';
         publishBtn.onclick = publishStory;
         
-        // Update user status indicator
-        if (userStatus) {
-            const userName = user.name || user.displayName || user.email || 'User';
-            userStatus.textContent = `Logged in as ${userName}`;
-            userStatus.className = 'user-status logged-in';
-        }
-        
         console.log('User authenticated:', user.name || user.displayName);
     } else {
         publishBtn.disabled = true;
         publishBtn.textContent = 'Login to Publish';
         publishBtn.onclick = () => {
-            window.location.href = 'login.html';
+            console.log('🔄 Login button clicked, redirecting to login.html');
+            console.log('Current location:', window.location.href);
+            console.log('Target:', 'login.html');
+            try {
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('❌ Login redirect error:', error);
+            }
         };
-        
-        // Update user status indicator
-        if (userStatus) {
-            userStatus.textContent = 'Not logged in';
-            userStatus.className = 'user-status logged-out';
-        }
         
         console.log('No user authenticated');
     }
@@ -784,8 +1140,11 @@ function checkFirebaseConfiguration() {
 // Local publishing system for testing without Firebase
 async function publishLocally() {
     const title = document.getElementById('story-title').value || 'Untitled Story';
-    const content = document.getElementById('story-content').value;
+    const content = getStoryContent();
     const rating = document.getElementById('content-rating-select').value;
+    const description = document.getElementById('story-description').value;
+    const coverUrl = document.getElementById('cover-url').value;
+    const tags = getSelectedTags();
     const localStorageUser = JSON.parse(localStorage.getItem('user') || '{}');
     
     if (!content.trim()) {
@@ -796,17 +1155,31 @@ async function publishLocally() {
     // Save to localStorage as published story
     const storyId = currentStory?.id || generateStoryId();
     
+    // Calculate word count properly for HTML content
+    let wordCount = 0;
+    if (content) {
+        if (tinymceEditor) {
+            const plainText = tinymceEditor.getContent({format: 'text'});
+            wordCount = plainText.trim() ? plainText.trim().split(/\s+/).length : 0;
+        } else {
+            wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+        }
+    }
+    
     const publishedStory = {
         id: storyId,
         title,
         content,
         excerpt: content.substring(0, 200),
+        description: description.trim() || content.substring(0, 200),
         contentRating: rating,
+        tags: tags,
+        coverUrl: coverUrl.trim() || null,
         authorName: localStorageUser.name || 'Anonymous',
         authorEmail: localStorageUser.email || '',
         publishedAt: Date.now(),
         updatedAt: Date.now(),
-        wordCount: content.trim().split(/\s+/).length,
+        wordCount: wordCount,
         views: 0,
         likes: 0,
         isPublished: true,

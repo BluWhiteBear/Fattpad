@@ -21,7 +21,7 @@ function updateNavbarAuth() {
     
     // Find login button by text content instead of onclick attribute
     const loginBtn = Array.from(document.querySelectorAll('.navbar-btn')).find(btn => 
-        btn.textContent.trim() === 'Log In'
+        btn.textContent.trim().toLowerCase() === 'log in'
     );
     const profileBtn = document.querySelector('.profile-btn');
     const profileImg = document.querySelector('.profile-img');
