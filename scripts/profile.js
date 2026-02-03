@@ -172,12 +172,20 @@ async function loadUserStats() {
             totalLikes += story.likes || 0;
         });
         
-        // Update stats display
-        const worksCountElement = document.querySelector('.col-3:nth-child(1) .h4');
-        const readsCountElement = document.querySelector('.col-3:nth-child(4) .h4');
-        
-        if (worksCountElement) worksCountElement.textContent = storiesSnapshot.size;
-        if (readsCountElement) readsCountElement.textContent = formatNumber(totalReads);
+        // Update stats display using more specific selectors
+        const statsContainer = document.querySelector('.col-12.col-lg-auto .row');
+        if (statsContainer) {
+            const statColumns = statsContainer.querySelectorAll('.col-3');
+            if (statColumns.length >= 4) {
+                // Works count (1st column)
+                const worksCountElement = statColumns[0].querySelector('.h4');
+                if (worksCountElement) worksCountElement.textContent = storiesSnapshot.size;
+                
+                // Reads count (4th column)
+                const readsCountElement = statColumns[3].querySelector('.h4');
+                if (readsCountElement) readsCountElement.textContent = formatNumber(totalReads);
+            }
+        }
         
         // Update stats in profile document
         if (currentUserProfile) {
@@ -216,11 +224,19 @@ async function loadUserWorks() {
         );
         
         const storiesSnapshot = await getDocs(userStoriesQuery);
-        const worksGrid = document.querySelector('#works .row');
+        const worksTab = document.querySelector('#works');
+        let worksGrid = null;
+        
+        if (worksTab) {
+            worksGrid = worksTab.querySelector('.row.g-4');
+        }
         
         // Clear existing content
         if (worksGrid) {
-            worksGrid.innerHTML = '';
+            // Keep the static sample cards for now, just clear any dynamically added ones
+            const dynamicCards = worksGrid.querySelectorAll('[data-dynamic="true"]');
+            dynamicCards.forEach(card => card.remove());
+        }
         
         if (storiesSnapshot.empty) {
             if (worksGrid) {
@@ -257,6 +273,7 @@ async function loadUserWorks() {
 function createWorkCard(story, storyId) {
     const cardColumn = document.createElement('div');
     cardColumn.className = 'col-12 col-md-6 col-lg-4 mb-4';
+    cardColumn.setAttribute('data-dynamic', 'true'); // Mark as dynamically created
     
     const status = story.isPublished ? 'Published' : 'Draft';
     const statusClass = story.isPublished ? 'bg-success' : 'bg-warning';
