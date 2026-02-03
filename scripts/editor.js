@@ -73,12 +73,38 @@ async function initializeTinyMCE() {
             plugins: [
                 'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                'insertdatetime', 'media', 'table', 'help', 'wordcount', 'paste'
             ],
             toolbar: 'undo redo | blocks | ' +
                 'bold italic underline strikethrough | alignleft aligncenter ' +
                 'alignright alignjustify | bullist numlist outdent indent | ' +
-                'removeformat | help',
+                'image | removeformat | help',
+            
+            // Image handling configuration
+            images_upload_handler: function (blobInfo, success, failure) {
+                // Convert blob to base64 data URL for immediate display
+                const reader = new FileReader();
+                reader.onload = function() {
+                    success(reader.result);
+                };
+                reader.onerror = function() {
+                    failure('Error reading image file');
+                };
+                reader.readAsDataURL(blobInfo.blob());
+            },
+            
+            // Allow pasted images to be automatically uploaded
+            paste_data_images: true,
+            
+            // Image upload settings
+            automatic_uploads: true,
+            file_picker_types: 'image',
+            
+            // Image dialog settings
+            image_advtab: true,
+            image_caption: true,
+            image_dimensions: false,
+            
             content_style: `
                 body { 
                     font-family: Georgia, serif; 
@@ -92,6 +118,13 @@ async function initializeTinyMCE() {
                 h1, h2, h3, h4, h5, h6 { 
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
                     margin: 1.5em 0 0.5em 0; 
+                }
+                img {
+                    max-width: 100%;
+                    height: auto;
+                    display: block;
+                    margin: 1em auto;
+                    border-radius: 4px;
                 }
             `,
             skin: 'oxide',
@@ -108,6 +141,17 @@ async function initializeTinyMCE() {
                 editor.on('input change', function() {
                     updateWordCount();
                     markAsChanged();
+                });
+                
+                // Handle paste events for better image support
+                editor.on('paste', function(e) {
+                    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            // Image paste detected - let TinyMCE handle it
+                            console.log('Image pasted into editor');
+                        }
+                    }
                 });
             }
         });
