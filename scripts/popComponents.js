@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <nav class="navbar">
 	<div class="navbar-logo">
 		<a href="index.html">
-			<span class="logo-text">fattpad</span>
+			<img src="img/fattpad_logo_1.png" alt="Fattpad Logo" class="logo-img">
 		</a>
 	</div>
 	<ul class="navbar-links">
