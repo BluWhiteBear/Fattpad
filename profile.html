@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fattpad | Profile</title>
+        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="profile.css">
+        <script src="scripts/themeLoader.js"></script>
+    </head>
+    <body>
+        <!-- Nav Bar -->
+        <div id="navbar-placeholder"></div>
+        
+        <main class="profile-container">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <img id="profile-picture" src="" alt="Profile Picture" class="avatar-img">
+                    <button class="edit-avatar-btn" title="Change Profile Picture">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                
+                <div class="profile-info">
+                    <h1 id="profile-name" class="profile-title">Loading...</h1>
+                    <p id="profile-email" class="profile-subtitle"></p>
+                    <p id="profile-bio" class="profile-bio">Welcome to my profile! I'm passionate about writing and sharing stories.</p>
+                    <button class="edit-profile-btn">Edit Profile</button>
+                </div>
+                
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">12</span>
+                        <span class="stat-label">Works</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">1.2K</span>
+                        <span class="stat-label">Followers</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">89</span>
+                        <span class="stat-label">Following</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">45K</span>
+                        <span class="stat-label">Reads</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="profile-content">
+                <div class="profile-tabs">
+                    <button class="profile-tab active" data-tab="works">My Works</button>
+                    <button class="profile-tab" data-tab="reading">Reading List</button>
+                    <button class="profile-tab" data-tab="favorites">Favorites</button>
+                    <button class="profile-tab" data-tab="activity">Activity</button>
+                </div>
+                
+                <div class="profile-tab-content">
+                    <div class="tab-panel active" id="works">
+                        <div class="works-header">
+                            <h2>My Works</h2>
+                            <button class="new-work-btn">
+                                <i class="fas fa-plus"></i> New Work
+                            </button>
+                        </div>
+                        <div class="works-grid">
+                            <!-- Sample works -->
+                            <div class="profile-work-card">
+                                <h3>The Midnight Chronicles</h3>
+                                <p>A thrilling adventure through time and space...</p>
+                                <div class="work-stats">
+                                    <span><i class="fas fa-eye"></i> 2.3K reads</span>
+                                    <span><i class="fas fa-star"></i> 4.8</span>
+                                    <span><i class="fas fa-comments"></i> 127</span>
+                                </div>
+                                <div class="work-actions">
+                                    <button class="edit-work">Edit</button>
+                                    <button class="delete-work">Delete</button>
+                                </div>
+                            </div>
+                            <div class="profile-work-card">
+                                <h3>Digital Dreams</h3>
+                                <p>Exploring the intersection of technology and humanity...</p>
+                                <div class="work-stats">
+                                    <span><i class="fas fa-eye"></i> 1.8K reads</span>
+                                    <span><i class="fas fa-star"></i> 4.5</span>
+                                    <span><i class="fas fa-comments"></i> 89</span>
+                                </div>
+                                <div class="work-actions">
+                                    <button class="edit-work">Edit</button>
+                                    <button class="delete-work">Delete</button>
+                                </div>
+                            </div>
+                            <div class="profile-work-card">
+                                <h3>Lost in Translation</h3>
+                                <p>A heartwarming story about finding your voice...</p>
+                                <div class="work-stats">
+                                    <span><i class="fas fa-eye"></i> 3.1K reads</span>
+                                    <span><i class="fas fa-star"></i> 4.9</span>
+                                    <span><i class="fas fa-comments"></i> 203</span>
+                                </div>
+                                <div class="work-actions">
+                                    <button class="edit-work">Edit</button>
+                                    <button class="delete-work">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-panel" id="reading">
+                        <h2>Currently Reading</h2>
+                        <div class="reading-list">
+                            <div class="reading-item">
+                                <h4>The Quantum Garden</h4>
+                                <p>by Sarah Chen</p>
+                                <div class="reading-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 67%"></div>
+                                    </div>
+                                    <span>Chapter 12 of 18</span>
+                                </div>
+                            </div>
+                            <div class="reading-item">
+                                <h4>Echoes of Eternity</h4>
+                                <p>by Marcus Blake</p>
+                                <div class="reading-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 23%"></div>
+                                    </div>
+                                    <span>Chapter 4 of 15</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-panel" id="favorites">
+                        <h2>Favorite Works</h2>
+                        <div class="favorites-grid">
+                            <div class="favorite-item">
+                                <h4>Stellar Horizons</h4>
+                                <p>by Luna Rodriguez</p>
+                                <span class="favorite-rating">★ 5.0</span>
+                            </div>
+                            <div class="favorite-item">
+                                <h4>The Silent Storm</h4>
+                                <p>by David Park</p>
+                                <span class="favorite-rating">★ 4.9</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-panel" id="activity">
+                        <h2>Recent Activity</h2>
+                        <div class="activity-feed">
+                            <div class="activity-item">
+                                <i class="fas fa-pencil-alt activity-icon"></i>
+                                <div class="activity-content">
+                                    <p>Published a new chapter in <strong>The Midnight Chronicles</strong></p>
+                                    <span class="activity-time">2 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <i class="fas fa-heart activity-icon"></i>
+                                <div class="activity-content">
+                                    <p>Liked <strong>Quantum Dreams</strong> by Alex Morgan</p>
+                                    <span class="activity-time">1 day ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <i class="fas fa-comment activity-icon"></i>
+                                <div class="activity-content">
+                                    <p>Commented on <strong>Digital Souls</strong></p>
+                                    <span class="activity-time">3 days ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <div id="footer-placeholder"></div>
+
+        <!-- Scripts -->
+        <script src="scripts/popComponents.js"></script>
+        <script src="scripts/navAuth.js"></script>
+        <script src="profile.js"></script>
+    </body>
+</html>

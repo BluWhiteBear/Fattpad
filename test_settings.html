@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="scripts/themeLoader.js"></script>
+</head>
+<body>
+    <div style="padding: 20px;">
+        <h1>Theme Test Page</h1>
+        
+        <div style="margin: 20px 0;">
+            <h3>Theme Controls:</h3>
+            <button onclick="testTheme('dark')">Dark Theme</button>
+            <button onclick="testTheme('light')">Light Theme</button>
+            <button onclick="testTheme('auto')">Auto Theme</button>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <h3>Content Rating Test:</h3>
+            <button onclick="testRating('E')">Everyone</button>
+            <button onclick="testRating('T')">Teen</button>
+            <button onclick="testRating('M')">Mature</button>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <h3>Current Settings:</h3>
+            <div id="current-settings">Loading...</div>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <button onclick="clearSettings()">Clear All Settings</button>
+        </div>
+    </div>
+
+    <script>
+        function testTheme(theme) {
+            localStorage.setItem('fattpad_theme', theme);
+            applyTheme(theme);
+            showCurrentSettings();
+        }
+        
+        function testRating(rating) {
+            localStorage.setItem('fattpad_content_rating', rating);
+            showCurrentSettings();
+        }
+        
+        function showCurrentSettings() {
+            const theme = localStorage.getItem('fattpad_theme') || 'dark';
+            const rating = localStorage.getItem('fattpad_content_rating') || 'E';
+            document.getElementById('current-settings').innerHTML = `
+                Theme: ${theme}<br>
+                Content Rating: ${rating}
+            `;
+        }
+        
+        function clearSettings() {
+            localStorage.removeItem('fattpad_theme');
+            localStorage.removeItem('fattpad_content_rating');
+            location.reload();
+        }
+        
+        function applyTheme(theme) {
+            const root = document.documentElement;
+            
+            if (theme === 'light') {
+                root.style.setProperty('--bg-primary', '#FFFFFF');
+                root.style.setProperty('--bg-secondary', '#F5F5F5');
+                root.style.setProperty('--text-primary', '#333333');
+                root.style.setProperty('--text-secondary', '#666666');
+                root.style.setProperty('--accent-color', '#E97775');
+            } else if (theme === 'dark') {
+                root.style.setProperty('--bg-primary', '#191919');
+                root.style.setProperty('--bg-secondary', '#333333');
+                root.style.setProperty('--text-primary', '#E8E8E8');
+                root.style.setProperty('--text-secondary', '#998282');
+                root.style.setProperty('--accent-color', '#E97775');
+            } else if (theme === 'auto') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark ? 'dark' : 'light');
+                return;
+            }
+        }
+        
+        // Initialize
+        showCurrentSettings();
+    </script>
+</body>
+</html>

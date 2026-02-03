@@ -18,6 +18,8 @@ function handleCredentialResponse(response) {
         picture: responsePayload.picture
     }));
     
+    console.log('User logged in:', responsePayload);
+    
     // Show success message and redirect
     showLoginSuccess(responsePayload.name);
     setTimeout(() => {

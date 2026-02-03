@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fattpad | Write</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="editor.css">
+    <script src="scripts/themeLoader.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        
+        window.firebaseModules = { initializeApp, getFirestore, getAuth };
+    </script>
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+    
+    <main class="editor-container">
+        <div class="editor-header">
+            <input type="text" id="story-title" placeholder="Story Title" class="title-input">
+            <div class="editor-controls">
+                <select id="content-rating-select">
+                    <option value="E">Everyone</option>
+                    <option value="T">Teen</option>
+                    <option value="M">Mature</option>
+                </select>
+                <div class="user-status" id="user-status">Not logged in</div>
+                <button id="save-draft" class="btn secondary">Save Draft</button>
+                <button id="publish-story" class="btn primary">Publish</button>
+            </div>
+        </div>
+        
+        <div class="editor-main">
+            <textarea id="story-content" placeholder="Start writing your story..."></textarea>
+        </div>
+        
+        <div class="editor-footer">
+            <div class="word-count">Words: <span id="word-count">0</span></div>
+            <div class="save-status" id="save-status">Draft</div>
+        </div>
+    </main>
+    
+    <!-- Notification for save status -->
+    <div id="notification" class="notification hidden"></div>
+    
+    <div id="footer-placeholder"></div>
+    
+    <script src="scripts/popComponents.js"></script>
+    <script src="scripts/navAuth.js"></script>
+    <script type="module" src="scripts/editor.js"></script>
+</body>
+</html>

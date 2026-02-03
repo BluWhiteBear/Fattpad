@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read access to all published stories
+    match /stories/{storyId} {
+      allow read: if true;
+      allow write: if request.auth != null 
+        || (resource == null && request.resource.data.keys().hasAll(['title', 'content', 'authorEmail']));
+    }
+    
+    // Allow read access to published stories collection (for public feed)
+    match /publishedStories/{storyId} {
+      allow read: if true;
+      allow write: if request.auth != null
+        || (resource == null && request.resource.data.keys().hasAll(['title', 'content', 'authorEmail']));
+    }
+    
+    // User-specific data requires authentication
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

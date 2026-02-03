@@ -1,0 +1,312 @@
+// Firebase story fetching utilities
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, query, where, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+// Initialize Firebase (using same config as other files)
+const firebaseConfig = {
+    apiKey: "AIzaSyA53SaCvEGgQmBkfc47twD3rmjbiegtBeo",
+    authDomain: "fattpad-700c6.firebaseapp.com",
+    projectId: "fattpad-700c6",
+    storageBucket: "fattpad-700c6.firebasestorage.app",
+    messagingSenderId: "766165381277",
+    appId: "1:766165381277:web:79523e259dbd81c3702474",
+    measurementId: "G-ELTHWYDTMH"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/**
+ * Get current user's content rating preference
+ * @returns {string} Content rating filter
+ */
+function getContentRatingFilter() {
+    const userSettings = JSON.parse(localStorage.getItem('fattpad_settings') || '{}');
+    // Default to 'explicit' for testing so all stories are visible
+    return userSettings.contentRating || 'explicit';
+}
+
+/**
+ * Apply content rating filter to query
+ * @param {string} userRating - User's content rating preference
+ * @returns {array} Array of allowed content ratings (including abbreviations)
+ */
+function getAllowedContentRatings(userRating) {
+    const ratingHierarchy = {
+        'general': ['general', 'G'],
+        'teen': ['general', 'G', 'teen', 'T'],
+        'mature': ['general', 'G', 'teen', 'T', 'mature', 'M'],
+        'explicit': ['general', 'G', 'teen', 'T', 'mature', 'M', 'explicit', 'E']
+    };
+    return ratingHierarchy[userRating] || ['general', 'G'];
+}
+
+/**
+ * Get newest stories (most recently published)
+ * @returns {Promise<Array>} Array of story objects
+ */
+export async function getNewStories() {
+    try {
+        console.log('📚 Fetching new stories...');
+        
+        const userRating = getContentRatingFilter();
+        const allowedRatings = getAllowedContentRatings(userRating);
+        console.log('🔍 Allowed content ratings:', allowedRatings);
+        
+        const storiesRef = collection(db, 'stories');
+        
+        // First, let's try to get all stories to see what's in the database
+        console.log('🔍 Fetching all stories for debugging...');
+        const allStoriesQuery = query(storiesRef, limit(5));
+        const allSnapshot = await getDocs(allStoriesQuery);
+        
+        console.log('📊 Sample stories in database:');
+        allSnapshot.forEach((doc) => {
+            const data = doc.data();
+            console.log('📄 Story:', {
+                id: doc.id,
+                title: data.title,
+                isPublished: data.isPublished,
+                publishedAt: data.publishedAt,
+                contentRating: data.contentRating,
+                author: data.authorName || data.author
+            });
+        });
+        
+        // More flexible query - remove the isPublished filter for now
+        const q = query(
+            storiesRef,
+            orderBy('publishedAt', 'desc'),
+            limit(20)
+        );
+        
+        console.log('🔍 Running main query...');
+        const querySnapshot = await getDocs(q);
+        console.log('📊 Query returned', querySnapshot.size, 'documents');
+        
+        const stories = [];
+        
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            console.log('🔍 Processing story:', {
+                id: doc.id,
+                title: data.title,
+                isPublished: data.isPublished,
+                contentRating: data.contentRating
+            });
+            
+            // More flexible filtering - accept if isPublished is true OR missing
+            const isPublished = data.isPublished === true || data.isPublished === undefined;
+            const storyRating = data.contentRating || 'general';
+            const ratingAllowed = allowedRatings.includes(storyRating);
+            
+            console.log('🔍 Filter check:', {
+                isPublished: isPublished,
+                storyRating: storyRating,
+                allowedRatings: allowedRatings,
+                ratingAllowed: ratingAllowed
+            });
+            
+            if (isPublished && ratingAllowed) {
+                stories.push({
+                    id: doc.id,
+                    ...data
+                });
+                console.log('✅ Added story:', data.title);
+            } else {
+                console.log('❌ Filtered out story:', data.title, 
+                    'isPublished:', isPublished, 
+                    'ratingAllowed:', ratingAllowed,
+                    'storyRating:', storyRating);
+            }
+        });
+        
+        // Limit to 9 after filtering
+        const limitedStories = stories.slice(0, 9);
+        console.log(`✅ Fetched ${limitedStories.length} new stories after filtering`);
+        return limitedStories;
+        
+    } catch (error) {
+        console.error('❌ Error fetching new stories:', error);
+        return [];
+    }
+}
+
+/**
+ * Get popular stories (most viewed)
+ * @returns {Promise<Array>} Array of story objects
+ */
+export async function getPopularStories() {
+    try {
+        console.log('📈 Fetching popular stories...');
+        
+        const userRating = getContentRatingFilter();
+        const allowedRatings = getAllowedContentRatings(userRating);
+        
+        const storiesRef = collection(db, 'stories');
+        const q = query(
+            storiesRef,
+            where('isPublished', '==', true),
+            orderBy('views', 'desc'),
+            limit(20)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const stories = [];
+        
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (allowedRatings.includes(data.contentRating || 'general')) {
+                stories.push({
+                    id: doc.id,
+                    ...data
+                });
+            }
+        });
+        
+        const limitedStories = stories.slice(0, 9);
+        console.log(`✅ Fetched ${limitedStories.length} popular stories`);
+        return limitedStories;
+        
+    } catch (error) {
+        console.error('❌ Error fetching popular stories:', error);
+        return [];
+    }
+}
+
+/**
+ * Get top-rated stories (highest likes)
+ * @returns {Promise<Array>} Array of story objects
+ */
+export async function getTopStories() {
+    try {
+        console.log('⭐ Fetching top stories...');
+        
+        const userRating = getContentRatingFilter();
+        const allowedRatings = getAllowedContentRatings(userRating);
+        
+        const storiesRef = collection(db, 'stories');
+        const q = query(
+            storiesRef,
+            where('isPublished', '==', true),
+            orderBy('likes', 'desc'),
+            limit(20)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const stories = [];
+        
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (allowedRatings.includes(data.contentRating || 'general')) {
+                stories.push({
+                    id: doc.id,
+                    ...data
+                });
+            }
+        });
+        
+        const limitedStories = stories.slice(0, 9);
+        console.log(`✅ Fetched ${limitedStories.length} top stories`);
+        return limitedStories;
+        
+    } catch (error) {
+        console.error('❌ Error fetching top stories:', error);
+        return [];
+    }
+}
+
+/**
+ * Format story data for display
+ * @param {Object} story - Raw story object from Firebase
+ * @returns {Object} Formatted story object
+ */
+export function formatStoryForDisplay(story) {
+    return {
+        id: story.id,
+        title: story.title || 'Untitled',
+        excerpt: story.excerpt || (story.content ? story.content.substring(0, 150) + '...' : 'No preview available'),
+        author: story.authorName || 'Anonymous',
+        authorPicture: story.authorPicture,
+        publishedAt: story.publishedAt,
+        wordCount: story.wordCount || 0,
+        views: story.views || 0,
+        likes: story.likes || 0,
+        contentRating: story.contentRating || 'general',
+        // Format dates
+        publishedDate: story.publishedAt ? 
+            (story.publishedAt.seconds ? new Date(story.publishedAt.seconds * 1000).toLocaleDateString() : new Date(story.publishedAt).toLocaleDateString()) : 
+            'Unknown',
+        timeAgo: formatTimeAgo(story.publishedAt)
+    };
+}
+
+/**
+ * Format timestamp to "time ago" string
+ * @param {Object} timestamp - Firebase timestamp or date string
+ * @returns {string} Formatted time string
+ */
+function formatTimeAgo(timestamp) {
+    if (!timestamp) return 'Unknown';
+    
+    let publishDate;
+    if (timestamp.seconds) {
+        // Firebase Timestamp
+        publishDate = new Date(timestamp.seconds * 1000);
+    } else if (typeof timestamp === 'string') {
+        // ISO string
+        publishDate = new Date(timestamp);
+    } else {
+        return 'Unknown';
+    }
+    
+    const now = new Date();
+    const diffMs = now - publishDate;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    
+    if (diffDays > 30) {
+        return publishDate.toLocaleDateString();
+    } else if (diffDays > 0) {
+        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    } else if (diffHours > 0) {
+        return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    } else if (diffMinutes > 0) {
+        return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+    } else {
+        return 'Just now';
+    }
+}
+
+/**
+ * Get all available stories with filtering and sorting options
+ * @param {string} sortBy - 'new', 'popular', or 'top'
+ * @param {number} limitCount - Number of stories to return
+ * @returns {Promise<Array>} Array of formatted story objects
+ */
+export async function getStories(sortBy = 'new', limitCount = 9) {
+    try {
+        let stories = [];
+        
+        switch (sortBy) {
+            case 'popular':
+                stories = await getPopularStories();
+                break;
+            case 'top':
+                stories = await getTopStories();
+                break;
+            case 'new':
+            default:
+                stories = await getNewStories();
+                break;
+        }
+        
+        // Format stories for display
+        return stories.map(formatStoryForDisplay).slice(0, limitCount);
+        
+    } catch (error) {
+        console.error(`❌ Error getting ${sortBy} stories:`, error);
+        return [];
+    }
+}
