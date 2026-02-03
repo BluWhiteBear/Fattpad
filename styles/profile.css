@@ -7,8 +7,30 @@
 
 /* Override Bootstrap card backgrounds */
 .card.bg-dark {
-    background-color: var(--bg-primary) !important;
+    background-color: var(--bg-secondary) !important;
     border: 1px solid var(--border-color) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card.bg-dark:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    border-color: var(--accent-color);
+}
+
+/* Work card specific styling */
+.card .badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.card .badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.card .badge.bg-secondary {
+    background-color: var(--text-secondary) !important;
+    color: var(--bg-primary) !important;
 }
 
 /* Bootstrap nav-tabs custom styling */
