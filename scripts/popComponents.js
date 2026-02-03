@@ -1,40 +1,59 @@
 // Automatically load navbar component into pages
 document.addEventListener("DOMContentLoaded", function() {
     
-    // Function to load component - try multiple methods for local files
-    function loadComponent(componentName, containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) {
-            console.error(`Container element with ID '${containerId}' not found`);
-            return;
-        }
+    const navbarHTML = `
+<nav class="navbar">
+	<div class="navbar-logo">
+		<a href="/">
+			<span class="logo-text">fattpad</span>
+		</a>
+	</div>
+	<ul class="navbar-links">
+		<li><a href="/">home</a></li>
+		<li><a href="#explore">explore</a></li>
+		<li><a href="editor.html">write</a></li>
+		<li><a href="#library">library</a></li>
+	</ul>
+	<div class="navbar-actions">
+		<button class="navbar-btn" onclick="window.location.href='login.html'">log in</button>
+		<button class="profile-btn" style="display: none;">
+			<img alt="Profile" class="profile-img">
+		</button>
+	</div>
+</nav>`;
 
-        // Get the current page's path to construct relative path correctly
-        const currentPath = window.location.pathname;
-        const basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
-        const url = basePath + 'components/' + componentName;
-        
-        console.log(`Loading component: ${componentName} from ${url}`);
+    const footerHTML = `
+<footer class="footer">
+    <div class="footer-main">
+        <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="#explore">Explore</a></li>
+            <li><a href="#write">Write</a></li>
+            <li><a href="#library">Library</a></li>
+            <li><a href="#profile">Profile</a></li>
+            <li class="footer-logout" style="display: none;"><a href="#" onclick="logout(); return false;">Logout</a></li>
+        </ul>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 Fattpad. All rights reserved.</p>
+    </div>
+</footer>`;
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200 || xhr.status === 0) { // 0 for local files
-                    container.innerHTML = xhr.responseText;
-                    console.log(`Successfully loaded ${componentName}`);
-                } else {
-                    console.error(`Error loading ${url}: ${xhr.status} ${xhr.statusText}`);
-                }
-            }
-        };
-        xhr.onerror = function() {
-            console.error(`Network error loading ${url}`);
-        };
-        xhr.send();
+    // Insert navbar
+    const navbarContainer = document.getElementById('navbar-container');
+    if (navbarContainer) {
+        navbarContainer.innerHTML = navbarHTML;
+        console.log('Navbar loaded successfully');
+    } else {
+        console.error('Navbar container not found');
     }
 
-    // Load navbar and footer components
-    loadComponent('navbar.html', 'navbar-container');
-    loadComponent('footer.html', 'footer-container');
+    // Insert footer
+    const footerContainer = document.getElementById('footer-container');
+    if (footerContainer) {
+        footerContainer.innerHTML = footerHTML;
+        console.log('Footer loaded successfully');
+    } else {
+        console.error('Footer container not found');
+    }
 });
