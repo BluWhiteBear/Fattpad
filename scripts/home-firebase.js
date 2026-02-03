@@ -30,7 +30,7 @@ async function initializeFirebase() {
         const { initializeApp, getFirestore, getAuth } = window.firebaseModules;
         
         // Import Firebase config from separate file
-        const { firebaseConfig } = await import('../firebase-config-public.js');
+        const { firebaseConfig } = await import('../config/firebase-config-public.js');
         
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
@@ -132,9 +132,9 @@ function createStoryCard(story) {
     card.addEventListener('click', () => {
         // Check if it's a local story or Firebase story
         if (story.isLocal || !story.authorId) {
-            window.location.href = `story-local.html?id=${story.id}`;
+            window.location.href = `pages/story-local.html?id=${story.id}`;
         } else {
-            window.location.href = `story.html?id=${story.id}`;
+            window.location.href = `pages/story.html?id=${story.id}`;
         }
     });
     

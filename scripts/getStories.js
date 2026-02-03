@@ -1,7 +1,7 @@
 // Firebase story fetching utilities
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config-public.js';
+import { firebaseConfig } from '../config/firebase-config-public.js';
 
 // Initialize Firebase using imported config
 const app = initializeApp(firebaseConfig);

@@ -2,7 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { firebaseConfig } from '../firebase-config-public.js';
+import { firebaseConfig } from '../config/firebase-config-public.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -44,7 +44,7 @@ function setupEventListeners() {
     
     // New work button
     document.querySelector('.new-work-btn').addEventListener('click', () => {
-        window.location.href = 'editor.html';
+        window.location.href = 'pages/editor.html';
     });
     
     // Edit avatar button
@@ -231,7 +231,7 @@ async function loadUserWorks() {
                     <i class="fas fa-pen-nib"></i>
                     <h3>No works yet</h3>
                     <p>Start writing your first story!</p>
-                    <button class="btn primary" onclick="window.location.href='editor.html'">Create New Work</button>
+                    <button class="btn primary" onclick="window.location.href='pages/editor.html'">Create New Work</button>
                 </div>
             `;
             return;
@@ -388,11 +388,11 @@ function editAvatar() {
  * Global functions for work actions
  */
 window.editWork = function(storyId) {
-    window.location.href = `editor.html?id=${storyId}`;
+    window.location.href = `pages/editor.html?id=${storyId}`;
 };
 
 window.viewWork = function(storyId) {
-    window.location.href = `story.html?id=${storyId}`;
+    window.location.href = `pages/story.html?id=${storyId}`;
 };
 
 window.deleteWork = function(storyId, title) {

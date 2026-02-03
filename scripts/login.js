@@ -2,7 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { firebaseConfig } from '../firebase-config-public.js';
+import { firebaseConfig } from '../config/firebase-config-public.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 showLoginSuccess(user.displayName || user.email);
                 setTimeout(() => {
-                    window.location.href = 'index.html';
+                    window.location.href = '../index.html';
                 }, 1500);
             })
             .catch((error) => {
@@ -109,18 +109,18 @@ function showLoginSuccess(userName) {
     const successDiv = document.getElementById('loginSuccess');
     const successText = document.getElementById('successText');
     successText.textContent = `Welcome back, ${userName}!`;
-    successDiv.style.display = 'block';
+    successDiv.classList.remove('d-none');
 }
 
 function showLoginError(message) {
     const errorDiv = document.getElementById('loginError');
     const errorText = document.getElementById('errorText');
     errorText.textContent = message;
-    errorDiv.style.display = 'block';
+    errorDiv.classList.remove('d-none');
     
     // Hide error after 5 seconds
     setTimeout(() => {
-        errorDiv.style.display = 'none';
+        errorDiv.classList.add('d-none');
     }, 5000);
 }
 

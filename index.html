@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Fattpad | Home</title>
         <link rel="icon" href="img/fattpad_logo_1_no_text.png" type="image/png">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="styles.css">        
         <script src="scripts/themeLoader.js"></script>        
         
@@ -19,33 +20,49 @@
         </script>
         
         <script type="module" src="scripts/home-firebase.js"></script>
-        <script type="module" src="script.js" defer></script>
+        <script type="module" src="scripts/script.js" defer></script>
     </head>
-    <body>
+    <body class="d-flex flex-column min-vh-100">
         <!-- Nav Bar -->
         <div id="navbar-container"></div>
         
-        <main class="home-container">
-            <h1>welcome to fattpad</h1>
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="new">new</button>
-                <button class="tab-btn" data-tab="popular">popular</button>
-                <button class="tab-btn" data-tab="top">top</button>
-            </div>
-            <div class="tab-content">
-                <div class="tab-panel active" id="tab-new">
-                    <div class="works-grid">
-                        <!-- Stories will be loaded dynamically -->
-                    </div>
-                </div>
-                <div class="tab-panel" id="tab-popular">
-                    <div class="works-grid">
-                        <!-- Stories will be loaded dynamically -->
-                    </div>
-                </div>
-                <div class="tab-panel" id="tab-top">
-                    <div class="works-grid">
-                        <!-- Stories will be loaded dynamically -->
+        <main class="flex-grow-1 d-flex flex-column">
+            <div class="container-lg my-4 my-md-5 flex-grow-1">
+                <div class="card shadow-lg h-100">
+                    <div class="card-body p-3 p-md-4">
+                        <h1 class="mb-4 text-start">welcome to fattpad</h1>
+                        
+                        <!-- Bootstrap Nav Tabs -->
+                        <ul class="nav nav-tabs mb-4 justify-content-center justify-content-md-start" id="story-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="new-tab" data-bs-toggle="tab" data-bs-target="#tab-new" type="button" role="tab">new</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="popular-tab" data-bs-toggle="tab" data-bs-target="#tab-popular" type="button" role="tab">popular</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="top-tab" data-bs-toggle="tab" data-bs-target="#tab-top" type="button" role="tab">top</button>
+                            </li>
+                        </ul>
+                        
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="story-tabs-content">
+                            <div class="tab-pane fade show active" id="tab-new" role="tabpanel">
+                                <div class="row g-3 g-md-4" id="new-works-grid">
+                                    <!-- Stories will be loaded dynamically -->
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="tab-popular" role="tabpanel">
+                                <div class="row g-3 g-md-4" id="popular-works-grid">
+                                    <!-- Stories will be loaded dynamically -->
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="tab-top" role="tabpanel">
+                                <div class="row g-3 g-md-4" id="top-works-grid">
+                                    <!-- Stories will be loaded dynamically -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -54,6 +71,8 @@
         <!-- Footer -->
         <div id="footer-container"></div>
 
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Populates common components-->
         <script src="scripts/popComponents.js"></script>
         <script type="module" src="scripts/navAuth.js"></script>

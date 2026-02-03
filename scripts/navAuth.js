@@ -1,7 +1,7 @@
 // Firebase Auth navbar management
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { firebaseConfig } from '../firebase-config-public.js';
+import { firebaseConfig } from '../config/firebase-config-public.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -117,10 +117,10 @@ function toggleProfileDropdown(user) {
             </div>
         </div>
         <hr class="dropdown-divider">
-        <button class="dropdown-item" onclick="window.location.href='profile.html'">
+        <button class="dropdown-item" onclick="window.location.href='pages/profile.html'">
             <i class="fas fa-user"></i> Profile
         </button>
-        <button class="dropdown-item" onclick="window.location.href='settings.html'">
+        <button class="dropdown-item" onclick="window.location.href='pages/settings.html'">
             <i class="fas fa-cog"></i> Settings
         </button>
         <button class="dropdown-item logout-btn" onclick="logout()">

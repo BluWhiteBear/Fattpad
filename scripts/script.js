@@ -1,27 +1,19 @@
 
-// Tab switching logic for home page
+// Tab switching logic for home page with Bootstrap tabs
 import { getStories } from './getStories.js';
 
 document.addEventListener('DOMContentLoaded', function() {
-	const tabBtns = document.querySelectorAll('.tab-btn');
-	const tabPanels = document.querySelectorAll('.tab-panel');
-
-	tabBtns.forEach(btn => {
-		btn.addEventListener('click', function() {
-			// Remove active from all buttons
-			tabBtns.forEach(b => b.classList.remove('active'));
-			// Hide all panels
-			tabPanels.forEach(panel => panel.classList.remove('active'));
-
-			// Activate clicked button
-			btn.classList.add('active');
-			// Show corresponding panel
-			const tab = btn.getAttribute('data-tab');
-			const targetPanel = document.getElementById('tab-' + tab);
-			targetPanel.classList.add('active');
-
+	// Bootstrap tab event listeners
+	const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+	
+	tabButtons.forEach(tabButton => {
+		tabButton.addEventListener('shown.bs.tab', function(event) {
+			// Extract tab type from the target (e.g., "#tab-new" -> "new")
+			const targetId = event.target.getAttribute('data-bs-target');
+			const tabType = targetId.replace('#tab-', '');
+			
 			// Load stories for the active tab
-			loadTabStories(tab);
+			loadTabStories(tabType);
 		});
 	});
 
@@ -35,10 +27,10 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 async function loadTabStories(tabType) {
 	const tabPanel = document.getElementById(`tab-${tabType}`);
-	const worksGrid = tabPanel.querySelector('.works-grid');
+	const worksGrid = document.getElementById(`${tabType}-works-grid`);
 	
 	// Show loading state
-	worksGrid.innerHTML = '<div class="loading-spinner">Loading stories...</div>';
+	worksGrid.innerHTML = '<div class="col-12"><div class="text-center p-4">Loading stories...</div></div>';
 	
 	try {
 		let stories = [];
@@ -55,7 +47,7 @@ async function loadTabStories(tabType) {
 				<div class="no-stories">
 					<h3>No stories found</h3>
 					<p>Be the first to publish a story!</p>
-					<a href="editor.html" class="btn btn-primary">Write a Story</a>
+					<a href="pages/editor.html" class="btn btn-primary">Write a Story</a>
 				</div>
 			`;
 			return;
@@ -93,6 +85,10 @@ async function loadTabStories(tabType) {
  */
 function createStoryCard(story, tabType) {
 	console.log('createStoryCard called with:', story, 'tabType:', tabType); // Debug log
+	
+	// Create Bootstrap column wrapper
+	const colWrapper = document.createElement('div');
+	colWrapper.className = 'col-12 col-md-6';
 	
 	const card = document.createElement('div');
 	card.className = 'work-card';
@@ -148,10 +144,12 @@ function createStoryCard(story, tabType) {
 
 	// Add click handler to open story
 	card.addEventListener('click', () => {
-		window.location.href = `story.html?id=${story.id}`;
+		window.location.href = `pages/story.html?id=${story.id}`;
 	});
 
-	return card;
+	// Add card to column wrapper
+	colWrapper.appendChild(card);
+	return colWrapper;
 }
 
 // Make loadTabStories available globally for retry buttons

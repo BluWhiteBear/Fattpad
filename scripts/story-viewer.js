@@ -2,7 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, doc, getDoc, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { firebaseConfig } from '../firebase-config-public.js';
+import { firebaseConfig } from '../config/firebase-config-public.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

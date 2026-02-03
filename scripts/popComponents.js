@@ -1,24 +1,56 @@
 // Automatically load navbar component into pages
 document.addEventListener("DOMContentLoaded", function() {
     
+    // Detect if we're in a subdirectory (pages/) and adjust paths accordingly
+    const isInSubdir = window.location.pathname.includes('/pages/');
+    const pathPrefix = isInSubdir ? '../' : '';
+    
     const navbarHTML = `
 <nav class="navbar">
+	<!-- Mobile hamburger menu -->
+	<button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+		<span class="hamburger-line"></span>
+		<span class="hamburger-line"></span>
+		<span class="hamburger-line"></span>
+	</button>
+	
+	<!-- Logo (centered on mobile, left on desktop) -->
 	<div class="navbar-logo">
-		<a href="index.html">
-			<img src="img/fattpad_logo_1.png" alt="Fattpad Logo" class="logo-img" style="height: 40px;">
+		<a href="${pathPrefix}index.html">
+			<img src="${pathPrefix}img/fattpad_logo_1.png" alt="Fattpad Logo" class="logo-img" style="height: 30px;">
 		</a>
 	</div>
+	
+	<!-- Desktop navigation links -->
 	<ul class="navbar-links">
-		<li><a href="index.html">home</a></li>
+		<li><a href="${pathPrefix}index.html">home</a></li>
 		<li><a href="#explore">explore</a></li>
-		<li><a href="editor.html">write</a></li>
+		<li><a href="${pathPrefix}pages/editor.html">write</a></li>
 		<li><a href="#library">library</a></li>
 	</ul>
+	
+	<!-- Desktop actions -->
 	<div class="navbar-actions">
-		<button class="navbar-btn" onclick="window.location.href='login.html'">log in</button>
+		<button class="navbar-btn" onclick="window.location.href='${pathPrefix}pages/login.html'">log in</button>
 		<button class="profile-btn" style="display: none;">
 			<img alt="profile" class="profile-img">
 		</button>
+	</div>
+	
+	<!-- Mobile navigation dropdown -->
+	<div class="mobile-nav-dropdown" id="mobileNavDropdown">
+		<div class="mobile-nav-content">
+			<a href="${pathPrefix}index.html" class="mobile-nav-item">home</a>
+			<a href="#explore" class="mobile-nav-item">explore</a>
+			<a href="${pathPrefix}pages/editor.html" class="mobile-nav-item">write</a>
+			<a href="#library" class="mobile-nav-item">library</a>
+			<div class="mobile-nav-divider"></div>
+			<button class="mobile-nav-btn" onclick="window.location.href='${pathPrefix}pages/login.html'">log in</button>
+			<button class="mobile-profile-btn" style="display: none;">
+				<img alt="profile" class="mobile-profile-img">
+				<span>profile</span>
+			</button>
+		</div>
 	</div>
 </nav>`;
 
@@ -26,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <footer class="footer">
     <div class="footer-main">
         <ul class="footer-links">
-            <li><a href="index.html">home</a></li>
+            <li><a href="${pathPrefix}index.html">home</a></li>
             <li><a href="#explore">explore</a></li>
             <li><a href="#write">write</a></li>
             <li><a href="#library">library</a></li>
@@ -57,3 +89,31 @@ document.addEventListener("DOMContentLoaded", function() {
         console.error('Footer container not found');
     }
 });
+
+// Mobile menu toggle functionality
+function toggleMobileMenu() {
+    const dropdown = document.getElementById('mobileNavDropdown');
+    const toggle = document.querySelector('.mobile-menu-toggle');
+    
+    if (dropdown.classList.contains('show')) {
+        dropdown.classList.remove('show');
+        toggle.classList.remove('active');
+    } else {
+        dropdown.classList.add('show');
+        toggle.classList.add('active');
+    }
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('mobileNavDropdown');
+    const toggle = document.querySelector('.mobile-menu-toggle');
+    
+    if (dropdown && toggle && !event.target.closest('.navbar')) {
+        dropdown.classList.remove('show');
+        toggle.classList.remove('active');
+    }
+});
+
+// Make toggleMobileMenu available globally
+window.toggleMobileMenu = toggleMobileMenu;
