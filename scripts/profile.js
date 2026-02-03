@@ -233,9 +233,7 @@ async function loadUserWorks() {
         
         // Clear existing content
         if (worksGrid) {
-            // Keep the static sample cards for now, just clear any dynamically added ones
-            const dynamicCards = worksGrid.querySelectorAll('[data-dynamic="true"]');
-            dynamicCards.forEach(card => card.remove());
+            worksGrid.innerHTML = '';
         }
         
         if (storiesSnapshot.empty) {
