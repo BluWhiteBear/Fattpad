@@ -13,8 +13,8 @@ const db = getFirestore(app);
  */
 function getContentRatingFilter() {
     const userSettings = JSON.parse(localStorage.getItem('fattpad_settings') || '{}');
-    // Default to 'explicit' for testing so all stories are visible
-    return userSettings.contentRating || 'explicit';
+    // Default to 'A' for testing so all stories are visible
+    return userSettings.contentRating || 'A';
 }
 
 /**
@@ -24,12 +24,12 @@ function getContentRatingFilter() {
  */
 function getAllowedContentRatings(userRating) {
     const ratingHierarchy = {
-        'general': ['general', 'G'],
-        'teen': ['general', 'G', 'teen', 'T'],
-        'mature': ['general', 'G', 'teen', 'T', 'mature', 'M'],
-        'explicit': ['general', 'G', 'teen', 'T', 'mature', 'M', 'explicit', 'E']
+        'E': ['E'],  // Everyone - only everyone content
+        'T': ['E', 'T'],  // Teen - everyone + teen content
+        'M': ['E', 'T', 'M'],  // Mature - everyone + teen + mature content
+        'A': ['E', 'T', 'M', 'A']  // Adult - all content
     };
-    return ratingHierarchy[userRating] || ['general', 'G'];
+    return ratingHierarchy[userRating] || ['E'];
 }
 
 /**
@@ -88,7 +88,7 @@ export async function getNewStories() {
             
             // More flexible filtering - accept if isPublished is true OR missing
             const isPublished = data.isPublished === true || data.isPublished === undefined;
-            const storyRating = data.contentRating || 'general';
+            const storyRating = data.contentRating || 'E';
             const ratingAllowed = allowedRatings.includes(storyRating);
             
             console.log('🔍 Filter check:', {
@@ -147,7 +147,7 @@ export async function getPopularStories() {
         
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            if (allowedRatings.includes(data.contentRating || 'general')) {
+            if (allowedRatings.includes(data.contentRating || 'E')) {
                 stories.push({
                     id: doc.id,
                     ...data
@@ -189,7 +189,7 @@ export async function getTopStories() {
         
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            if (allowedRatings.includes(data.contentRating || 'general')) {
+            if (allowedRatings.includes(data.contentRating || 'E')) {
                 stories.push({
                     id: doc.id,
                     ...data
@@ -226,7 +226,7 @@ export function formatStoryForDisplay(story) {
         wordCount: story.wordCount || 0,
         views: story.views || 0,
         likes: story.likes || 0,
-        contentRating: story.contentRating || 'general',
+        contentRating: story.contentRating || 'E',
         // Format dates
         publishedDate: story.publishedAt ? 
             (story.publishedAt.seconds ? new Date(story.publishedAt.seconds * 1000).toLocaleDateString() : new Date(story.publishedAt).toLocaleDateString()) : 
