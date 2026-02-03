@@ -562,7 +562,6 @@ main {
 .navbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     background: var(--bg-secondary);
     padding: 0 32px;
     height: 60px;
@@ -571,6 +570,23 @@ main {
     box-sizing: border-box;
     width: 100%;
     overflow-x: auto;
+}
+
+.navbar-logo {
+    margin-right: 32px;
+}
+
+.navbar-links {
+    list-style: none;
+    display: flex;
+    gap: 24px;
+    margin: 0;
+    padding: 0;
+    flex-grow: 1;
+}
+
+.navbar-actions {
+    margin-left: auto;
 }
 
 .navbar-logo .logo-text {
