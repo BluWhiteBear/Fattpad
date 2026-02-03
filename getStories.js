@@ -217,16 +217,29 @@ export async function formatStoryForDisplay(story) {
     let authorName = 'Anonymous';
     let authorPicture = '';
     
+    console.log('👤 Looking up author for story:', story.title, 'authorId:', story.authorId);
+    
     if (story.authorId) {
         try {
             const authorDoc = await getDoc(doc(db, 'users', story.authorId));
+            console.log('👤 Author doc exists:', authorDoc.exists(), 'for authorId:', story.authorId);
             if (authorDoc.exists()) {
                 const authorData = authorDoc.data();
                 authorName = authorData.displayName || 'Anonymous';
                 authorPicture = authorData.photoURL || '';
+                console.log('👤 Found author:', authorName, 'for story:', story.title);
+            } else {
+                console.warn('👤 No user document found for authorId:', story.authorId);
             }
         } catch (error) {
-            console.warn('Could not fetch author data for story:', story.id, error);
+            console.warn('👤 Could not fetch author data for story:', story.id, error);
+        }
+    } else {
+        console.warn('👤 Story has no authorId:', story.title);
+        // Check if there's legacy authorName data
+        if (story.authorName) {
+            authorName = story.authorName;
+            console.log('👤 Using legacy authorName:', authorName);
         }
     }
 
@@ -315,10 +328,39 @@ export async function getStories(sortBy = 'new', limitCount = 9) {
         }
         
         // Format stories for display (now async)
+        console.log('🔄 Starting to format', stories.length, 'stories...');
         const formattedStories = await Promise.all(
-            stories.slice(0, limitCount).map(story => formatStoryForDisplay(story))
+            stories.slice(0, limitCount).map(async (story, index) => {
+                try {
+                    console.log(`🔄 Formatting story ${index}:`, story.title);
+                    const formatted = await formatStoryForDisplay(story);
+                    console.log(`✅ Formatted story ${index}:`, formatted.title);
+                    return formatted;
+                } catch (error) {
+                    console.error(`❌ Error formatting story ${index}:`, error, story);
+                    // Return a basic fallback object
+                    return {
+                        id: story.id,
+                        title: story.title || 'Untitled',
+                        description: story.description || 'No description',
+                        author: 'Anonymous',
+                        authorId: story.authorId || null,
+                        authorPicture: '',
+                        coverImage: story.coverImage || story.coverUrl || '',
+                        tags: story.tags || [],
+                        publishedAt: story.publishedAt,
+                        wordCount: story.wordCount || 0,
+                        views: story.views || 0,
+                        likes: story.likes || 0,
+                        contentRating: story.contentRating || 'E',
+                        publishedDate: 'Unknown',
+                        timeAgo: 'Unknown'
+                    };
+                }
+            })
         );
         
+        console.log('✅ All stories formatted successfully');
         return formattedStories;
         
     } catch (error) {
