@@ -26,6 +26,7 @@ const shareBtn = document.getElementById('share-btn');
 
 let currentStory = null;
 let currentStoryId = null;
+let currentAuthorName = 'Anonymous';
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async function() {
@@ -126,7 +127,7 @@ function loadFromLocalStorage(storyId) {
 /**
  * Display the story
  */
-function displayStory(story) {
+async function displayStory(story) {
     // Hide loading, show content
     loadingEl.style.display = 'none';
     storyDisplayEl.style.display = 'block';
@@ -135,9 +136,27 @@ function displayStory(story) {
     storyTitleEl.textContent = story.title || 'Untitled Story';
     document.title = `${story.title || 'Untitled Story'} - Fattpad`;
     
-    // Set author info
-    const authorName = story.authorName || story.author || 'Anonymous';
+    // Fetch and set author info
+    let authorName = 'Anonymous';
+    if (story.authorId) {
+        try {
+            const authorDoc = await getDoc(doc(db, 'users', story.authorId));
+            if (authorDoc.exists()) {
+                const authorData = authorDoc.data();
+                authorName = authorData.displayName || 'Anonymous';
+            }
+        } catch (error) {
+            console.warn('Could not fetch author data:', error);
+            // Fall back to stored authorName if it exists
+            authorName = story.authorName || story.author || 'Anonymous';
+        }
+    } else {
+        // Fall back to stored authorName for backward compatibility
+        authorName = story.authorName || story.author || 'Anonymous';
+    }
+    
     storyAuthorEl.textContent = `by ${authorName}`;
+    currentAuthorName = authorName;
     
     // Set content rating
     const rating = (story.contentRating || 'general').toLowerCase();
@@ -417,7 +436,7 @@ function handleShare() {
     
     const shareData = {
         title: currentStory.title || 'Check out this story',
-        text: `"${currentStory.title}" by ${currentStory.authorName || 'Anonymous'} on Fattpad`,
+        text: `"${currentStory.title}" by ${currentAuthorName} on Fattpad`,
         url: window.location.href
     };
     

@@ -1,6 +1,6 @@
 // Firebase story fetching utilities
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, query, where, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { firebaseConfig } from './firebase-config-public.js';
 
 // Initialize Firebase using imported config
@@ -208,18 +208,36 @@ export async function getTopStories() {
 }
 
 /**
- * Format story data for display
+ * Format story data for display with author information
  * @param {Object} story - Raw story object from Firebase
- * @returns {Object} Formatted story object
+ * @returns {Promise<Object>} Formatted story object
  */
-export function formatStoryForDisplay(story) {
+export async function formatStoryForDisplay(story) {
+    // Fetch author information if authorId exists
+    let authorName = 'Anonymous';
+    let authorPicture = '';
+    
+    if (story.authorId) {
+        try {
+            const authorDoc = await getDoc(doc(db, 'users', story.authorId));
+            if (authorDoc.exists()) {
+                const authorData = authorDoc.data();
+                authorName = authorData.displayName || 'Anonymous';
+                authorPicture = authorData.photoURL || '';
+            }
+        } catch (error) {
+            console.warn('Could not fetch author data for story:', story.id, error);
+        }
+    }
+
     return {
         id: story.id,
         title: story.title || 'Untitled',
         description: story.description || story.excerpt || '', // Use story description if available
         excerpt: story.excerpt || (story.content ? story.content.substring(0, 150) + '...' : 'No preview available'),
-        author: story.authorName || 'Anonymous',
-        authorPicture: story.authorPicture,
+        author: authorName,
+        authorId: story.authorId || null,
+        authorPicture: authorPicture,
         coverImage: story.coverImage || story.coverUrl || '', // Add cover image support
         tags: story.tags || story.genres || [], // Add tags support
         publishedAt: story.publishedAt,
@@ -296,8 +314,12 @@ export async function getStories(sortBy = 'new', limitCount = 9) {
                 break;
         }
         
-        // Format stories for display
-        return stories.map(formatStoryForDisplay).slice(0, limitCount);
+        // Format stories for display (now async)
+        const formattedStories = await Promise.all(
+            stories.slice(0, limitCount).map(story => formatStoryForDisplay(story))
+        );
+        
+        return formattedStories;
         
     } catch (error) {
         console.error(`❌ Error getting ${sortBy} stories:`, error);
