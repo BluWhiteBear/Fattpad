@@ -34,38 +34,31 @@ document.addEventListener('DOMContentLoaded', function() {
  * Set up event listeners
  */
 function setupEventListeners() {
-    // Profile tabs
-    document.querySelectorAll('.profile-tab').forEach(tab => {
-        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-    });
+    // Profile tabs - Bootstrap tabs are handled automatically, but we can add custom handlers if needed
+    // The Bootstrap tab functionality is handled by data-bs-toggle="tab"
     
     // Edit profile button
-    document.querySelector('.edit-profile-btn').addEventListener('click', editProfile);
+    const editBtn = document.querySelector('.btn-outline-danger');
+    if (editBtn) editBtn.addEventListener('click', editProfile);
     
     // New work button
-    document.querySelector('.new-work-btn').addEventListener('click', () => {
-        window.location.href = 'pages/editor.html';
+    const newWorkBtn = document.querySelector('.btn.btn-danger');
+    if (newWorkBtn) newWorkBtn.addEventListener('click', () => {
+        window.location.href = '../pages/editor.html';
     });
     
     // Edit avatar button
-    document.querySelector('.edit-avatar-btn').addEventListener('click', editAvatar);
+    const editAvatarBtn = document.querySelector('.btn.btn-danger.position-absolute');
+    if (editAvatarBtn) editAvatarBtn.addEventListener('click', editAvatar);
 }
 
 /**
- * Switch between profile tabs
+ * Switch between profile tabs (Bootstrap handles this automatically)
+ * This function is kept for any custom tab switching logic if needed
  */
 function switchTab(tabName) {
-    // Update tab buttons
-    document.querySelectorAll('.profile-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    
-    // Update tab content
-    document.querySelectorAll('.tab-panel').forEach(panel => {
-        panel.classList.remove('active');
-    });
-    document.getElementById(tabName).classList.add('active');
+    // Bootstrap handles tab switching automatically with data-bs-toggle
+    // Custom logic can be added here if needed
     
     // Load tab-specific data
     if (tabName === 'works') {

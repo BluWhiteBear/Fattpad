@@ -1,3 +1,98 @@
+/* Bootstrap Theme Overrides for Profile Page */
+
+/* Override Bootstrap's bg-secondary to use our custom color */
+.bg-secondary {
+    background-color: var(--bg-secondary) !important;
+}
+
+/* Override Bootstrap card backgrounds */
+.card.bg-dark {
+    background-color: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Bootstrap nav-tabs custom styling */
+.nav-tabs {
+    border-bottom: 2px solid var(--border-color);
+}
+
+.nav-tabs .nav-link {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary) !important;
+    padding: 12px 20px;
+    margin-bottom: -2px;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--accent-color) !important;
+    background: transparent;
+    border: none;
+}
+
+.nav-tabs .nav-link.active {
+    background: transparent !important;
+    border: none;
+    border-bottom: 2px solid var(--accent-color) !important;
+    color: var(--accent-color) !important;
+}
+
+/* Progress bars */
+.progress {
+    background-color: var(--bg-primary);
+}
+
+.progress-bar.bg-danger {
+    background-color: var(--accent-color) !important;
+}
+
+/* List group items */
+.list-group-item.bg-dark {
+    background-color: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Badges */
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+/* Button overrides */
+.btn-danger {
+    background-color: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+}
+
+.btn-danger:hover,
+.btn-danger:focus {
+    background-color: #d6605e !important;
+    border-color: #d6605e !important;
+}
+
+.btn-outline-danger {
+    color: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+}
+
+.btn-outline-danger:hover,
+.btn-outline-danger:focus {
+    background-color: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.btn-outline-secondary {
+    color: var(--text-secondary) !important;
+    border-color: var(--text-secondary) !important;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+    background-color: var(--text-secondary) !important;
+    border-color: var(--text-secondary) !important;
+    color: var(--bg-primary) !important;
+}
+
 /* Profile Page Styles */
 .profile-container {
     max-width: 1200px;
