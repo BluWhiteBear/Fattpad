@@ -173,8 +173,11 @@ async function loadUserStats() {
         });
         
         // Update stats display
-        document.querySelector('.stat-item:nth-child(1) .stat-number').textContent = storiesSnapshot.size;
-        document.querySelector('.stat-item:nth-child(4) .stat-number').textContent = formatNumber(totalReads);
+        const worksCountElement = document.querySelector('.col-3:nth-child(1) .h4');
+        const readsCountElement = document.querySelector('.col-3:nth-child(4) .h4');
+        
+        if (worksCountElement) worksCountElement.textContent = storiesSnapshot.size;
+        if (readsCountElement) readsCountElement.textContent = formatNumber(totalReads);
         
         // Update stats in profile document
         if (currentUserProfile) {
@@ -213,27 +216,32 @@ async function loadUserWorks() {
         );
         
         const storiesSnapshot = await getDocs(userStoriesQuery);
-        const worksGrid = document.querySelector('#works .works-grid');
+        const worksGrid = document.querySelector('#works .row');
         
         // Clear existing content
-        worksGrid.innerHTML = '';
+        if (worksGrid) {
+            worksGrid.innerHTML = '';
         
         if (storiesSnapshot.empty) {
-            worksGrid.innerHTML = `
-                <div class="no-works">
-                    <i class="fas fa-pen-nib"></i>
-                    <h3>No works yet</h3>
-                    <p>Start writing your first story!</p>
-                    <button class="btn primary" onclick="window.location.href='pages/editor.html'">Create New Work</button>
-                </div>
-            `;
+            if (worksGrid) {
+                worksGrid.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-pen-nib text-muted display-1 mb-3"></i>
+                        <h3 class="text-light mb-3">No works yet</h3>
+                        <p class="text-muted mb-4">Start writing your first story!</p>
+                        <button class="btn btn-danger" onclick="window.location.href='../pages/editor.html'">Create New Work</button>
+                    </div>
+                `;
+            }
             return;
         }
         
         storiesSnapshot.forEach((doc) => {
             const story = doc.data();
             const workCard = createWorkCard(story, doc.id);
-            worksGrid.appendChild(workCard);
+            if (worksGrid) {
+                worksGrid.appendChild(workCard);
+            }
         });
         
         console.log(`✅ Loaded ${storiesSnapshot.size} works`);
@@ -247,35 +255,39 @@ async function loadUserWorks() {
  * Create a work card element
  */
 function createWorkCard(story, storyId) {
-    const card = document.createElement('div');
-    card.className = 'profile-work-card';
+    const cardColumn = document.createElement('div');
+    cardColumn.className = 'col-12 col-md-6 col-lg-4 mb-4';
     
     const status = story.isPublished ? 'Published' : 'Draft';
-    const statusClass = story.isPublished ? 'published' : 'draft';
+    const statusClass = story.isPublished ? 'bg-success' : 'bg-warning';
     
-    card.innerHTML = `
-        <div class="work-header">
-            <h3>${story.title || 'Untitled'}</h3>
-            <span class="work-status ${statusClass}">${status}</span>
-        </div>
-        <p class="work-description">${story.description || 'No description'}</p>
-        <div class="work-stats">
-            <span><i class="fas fa-eye"></i> ${formatNumber(story.views || 0)}</span>
-            <span><i class="fas fa-heart"></i> ${formatNumber(story.likes || 0)}</span>
-            <span><i class="fas fa-book"></i> ${formatNumber(story.wordCount || 0)} words</span>
-        </div>
-        <div class="work-meta">
-            <span class="work-rating">${getRatingLabel(story.contentRating)}</span>
-            <span class="work-date">${formatDate(story.updatedAt)}</span>
-        </div>
-        <div class="work-actions">
-            <button class="edit-work" onclick="editWork('${storyId}')">Edit</button>
-            <button class="view-work" onclick="viewWork('${storyId}')" ${!story.isPublished ? 'disabled' : ''}>View</button>
-            <button class="delete-work" onclick="deleteWork('${storyId}', '${story.title}')">Delete</button>
+    cardColumn.innerHTML = `
+        <div class="card bg-dark border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title text-light">${story.title || 'Untitled'}</h5>
+                    <span class="badge ${statusClass} text-dark">${status}</span>
+                </div>
+                <p class="card-text text-muted mb-3">${story.description || 'No description'}</p>
+                <div class="d-flex gap-3 mb-3 small text-muted">
+                    <span><i class="fas fa-eye"></i> ${formatNumber(story.views || 0)}</span>
+                    <span><i class="fas fa-heart"></i> ${formatNumber(story.likes || 0)}</span>
+                    <span><i class="fas fa-book"></i> ${formatNumber(story.wordCount || 0)} words</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-secondary">${getRatingLabel(story.contentRating)}</span>
+                    <small class="text-muted">${formatDate(story.updatedAt)}</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-danger btn-sm" onclick="editWork('${storyId}')">Edit</button>
+                    <button class="btn btn-outline-info btn-sm" onclick="viewWork('${storyId}')" ${!story.isPublished ? 'disabled' : ''}>View</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="deleteWork('${storyId}', '${story.title}')">Delete</button>
+                </div>
+            </div>
         </div>
     `;
     
-    return card;
+    return cardColumn;
 }
 
 /**
