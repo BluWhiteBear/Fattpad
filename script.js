@@ -94,14 +94,14 @@ function createStoryCard(story, tabType) {
 	let metadata = '';
 	switch(tabType) {
 		case 'popular':
-			metadata = `${story.views.toLocaleString()} reads`;
+			metadata = `${(story.views || 0).toLocaleString()} reads`;
 			break;
 		case 'top':
 			metadata = `❤️ ${(story.likes || 0).toLocaleString()}`;
 			break;
 		case 'new':
 		default:
-			metadata = story.timeAgo;
+			metadata = story.timeAgo || 'Unknown time';
 			break;
 	}
 
