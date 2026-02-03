@@ -82,16 +82,27 @@ async function initializeTinyMCE() {
             
             // Image handling configuration
             images_upload_handler: function (blobInfo, success, failure) {
-                // Convert blob to base64 data URL for immediate display
-                const reader = new FileReader();
-                reader.onload = function() {
-                    success(reader.result);
-                };
-                reader.onerror = function() {
-                    failure('Error reading image file');
-                };
-                reader.readAsDataURL(blobInfo.blob());
+                try {
+                    // Convert blob to base64 data URL for immediate display
+                    const reader = new FileReader();
+                    reader.onload = function() {
+                        console.log('Image converted to base64 successfully');
+                        success(reader.result);
+                    };
+                    reader.onerror = function() {
+                        console.error('Error reading image file');
+                        failure('Error reading image file');
+                    };
+                    reader.readAsDataURL(blobInfo.blob());
+                } catch (error) {
+                    console.error('Error in image upload handler:', error);
+                    failure('Failed to process image');
+                }
             },
+            
+            // Force all image uploads to use the handler
+            images_upload_url: false,
+            images_reuse_filename: false,
             
             // Allow pasted images to be automatically uploaded
             paste_data_images: true,
@@ -99,6 +110,11 @@ async function initializeTinyMCE() {
             // Image upload settings
             automatic_uploads: true,
             file_picker_types: 'image',
+            
+            // Prevent external image loading
+            convert_urls: false,
+            relative_urls: false,
+            remove_script_host: false,
             
             // Image dialog settings
             image_advtab: true,
