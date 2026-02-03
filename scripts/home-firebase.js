@@ -29,16 +29,8 @@ async function initializeFirebase() {
         
         const { initializeApp, getFirestore, getAuth } = window.firebaseModules;
         
-        // You'll need to replace this with your actual Firebase config
-        const firebaseConfig = {
-        apiKey: "AIzaSyA53SaCvEGgQmBkfc47twD3rmjbiegtBeo",
-        authDomain: "fattpad-700c6.firebaseapp.com",
-        projectId: "fattpad-700c6",
-        storageBucket: "fattpad-700c6.firebasestorage.app",
-        messagingSenderId: "766165381277",
-        appId: "1:766165381277:web:79523e259dbd81c3702474",
-        measurementId: "G-ELTHWYDTMH"
-        };
+        // Import Firebase config from separate file
+        const { firebaseConfig } = await import('../firebase-config-public.js');
         
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);

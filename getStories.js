@@ -1,18 +1,9 @@
 // Firebase story fetching utilities
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, collection, query, where, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { firebaseConfig } from './firebase-config-public.js';
 
-// Initialize Firebase (using same config as other files)
-const firebaseConfig = {
-    apiKey: "AIzaSyA53SaCvEGgQmBkfc47twD3rmjbiegtBeo",
-    authDomain: "fattpad-700c6.firebaseapp.com",
-    projectId: "fattpad-700c6",
-    storageBucket: "fattpad-700c6.firebasestorage.app",
-    messagingSenderId: "766165381277",
-    appId: "1:766165381277:web:79523e259dbd81c3702474",
-    measurementId: "G-ELTHWYDTMH"
-};
-
+// Initialize Firebase using imported config
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
