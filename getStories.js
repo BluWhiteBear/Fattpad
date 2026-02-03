@@ -236,8 +236,11 @@ export async function formatStoryForDisplay(story) {
         }
     } else {
         console.warn('👤 Story has no authorId:', story.title);
-        // Check if there's legacy authorName data
-        if (story.authorName) {
+        // Check if there's legacy authorName data or local_user
+        if (story.authorId === 'local_user') {
+            console.warn('👤 Story has legacy local_user authorId');
+            authorName = 'You (Local)'; // Indicate this is a local story
+        } else if (story.authorName) {
             authorName = story.authorName;
             console.log('👤 Using legacy authorName:', authorName);
         }

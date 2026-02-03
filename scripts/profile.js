@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (user) {
             currentUser = user;
             loadUserProfile(user.uid);
+            // Migrate any stories with local_user authorId
+            migrateLocalUserStories(user.uid);
         } else {
             // Redirect to login if not authenticated
             window.location.href = 'login.html';
@@ -440,4 +442,39 @@ function showError(message) {
 function showSuccess(message) {
     // TODO: Implement proper notification system
     alert(message);
+}
+
+/**
+ * Migrate stories with local_user authorId to current user
+ */
+async function migrateLocalUserStories(userId) {
+    try {
+        console.log('🔄 Checking for stories to migrate...');
+        
+        const storiesRef = collection(db, 'stories');
+        const localStoriesQuery = query(storiesRef, where('authorId', '==', 'local_user'));
+        const localStoriesSnapshot = await getDocs(localStoriesQuery);
+        
+        if (localStoriesSnapshot.empty) {
+            console.log('✅ No stories to migrate');
+            return;
+        }
+        
+        console.log(`🔄 Found ${localStoriesSnapshot.size} stories to migrate`);
+        
+        // Update each story
+        const updatePromises = localStoriesSnapshot.docs.map(async (storyDoc) => {
+            await updateDoc(doc(db, 'stories', storyDoc.id), {
+                authorId: userId,
+                updatedAt: new Date()
+            });
+            console.log(`✅ Migrated story: ${storyDoc.data().title}`);
+        });
+        
+        await Promise.all(updatePromises);
+        console.log(`✅ Successfully migrated ${localStoriesSnapshot.size} stories`);
+        
+    } catch (error) {
+        console.error('❌ Error migrating stories:', error);
+    }
 }
