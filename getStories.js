@@ -216,9 +216,12 @@ export function formatStoryForDisplay(story) {
     return {
         id: story.id,
         title: story.title || 'Untitled',
+        description: story.description || story.excerpt || '', // Use story description if available
         excerpt: story.excerpt || (story.content ? story.content.substring(0, 150) + '...' : 'No preview available'),
         author: story.authorName || 'Anonymous',
         authorPicture: story.authorPicture,
+        coverImage: story.coverImage || story.coverUrl || '', // Add cover image support
+        tags: story.tags || story.genres || [], // Add tags support
         publishedAt: story.publishedAt,
         wordCount: story.wordCount || 0,
         views: story.views || 0,

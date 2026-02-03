@@ -1,23 +1,31 @@
+// Firebase Auth navbar management
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { firebaseConfig } from '../firebase-config-public.js';
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
 // Navbar authentication state management
 document.addEventListener('DOMContentLoaded', function() {
     // Wait a bit for navbar to be populated by popComponents.js
     setTimeout(() => {
-        updateNavbarAuth();
+        setupAuthListener();
     }, 100);
 });
 
-// Also update when page gains focus (in case user logged in from another tab)
-window.addEventListener('focus', function() {
-    updateNavbarAuth();
-});
+function setupAuthListener() {
+    onAuthStateChanged(auth, (user) => {
+        updateNavbarAuth(user);
+    });
+}
 
-// Force update function that can be called externally
-window.forceNavbarUpdate = function() {
-    updateNavbarAuth();
-};
-
-function updateNavbarAuth() {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+function updateNavbarAuth(user = null) {
+    // If user is null, check auth.currentUser
+    if (user === null) {
+        user = auth.currentUser;
+    }
     
     // Find login button by text content instead of onclick attribute
     const loginBtn = Array.from(document.querySelectorAll('.navbar-btn')).find(btn => 
@@ -44,10 +52,10 @@ function updateNavbarAuth() {
             footerLogout.style.display = 'block';
         }
         
-        // Update profile image with user's Google picture
+        // Update profile image with user's photo
         if (profileImg) {
-            if (user.picture) {
-                profileImg.src = user.picture;
+            if (user.photoURL) {
+                profileImg.src = user.photoURL;
             } else {
                 // Use a simple data URI for default avatar
                 profileImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNFOTc3NzUiLz4KPGJ0ZXh0IHg9IjE2IiB5PSIyMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0U4RThFOCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+VTwvdGV4dD4KPHN2Zz4=';
@@ -77,9 +85,17 @@ function updateNavbarAuth() {
 }
 
 function logout() {
-    localStorage.removeItem('user');
-    window.location.href = 'index.html';
+    signOut(auth).then(() => {
+        // Sign-out successful
+        console.log('User signed out');
+        window.location.href = 'index.html';
+    }).catch((error) => {
+        console.error('Error signing out:', error);
+    });
 }
+
+// Make logout function available globally
+window.logout = logout;
 
 function toggleProfileDropdown(user) {
     // Remove existing dropdown if any
@@ -94,9 +110,9 @@ function toggleProfileDropdown(user) {
     dropdown.className = 'profile-dropdown';
     dropdown.innerHTML = `
         <div class="profile-dropdown-header">
-            <img src="${user.picture}" alt="${user.name}" class="dropdown-avatar">
+            <img src="${user.photoURL || '/img/default-avatar.png'}" alt="${user.displayName || user.email}" class="dropdown-avatar">
             <div class="dropdown-user-info">
-                <div class="dropdown-name">${user.name}</div>
+                <div class="dropdown-name">${user.displayName || 'User'}</div>
                 <div class="dropdown-email">${user.email}</div>
             </div>
         </div>

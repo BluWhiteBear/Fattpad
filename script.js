@@ -104,34 +104,47 @@ function createStoryCard(story, tabType) {
 	let metadata = '';
 	switch(tabType) {
 		case 'popular':
-			metadata = `Views: ${story.views.toLocaleString()}`;
+			metadata = `${story.views.toLocaleString()} reads`;
 			break;
 		case 'top':
 			metadata = `❤️ ${story.likes.toLocaleString()}`;
 			break;
 		case 'new':
 		default:
-			metadata = `Uploaded: ${story.timeAgo}`;
+			metadata = story.timeAgo;
 			break;
 	}
 
-	// Build the card HTML
+	// Use cover image if available, otherwise use book icon placeholder
+	const coverImageHtml = story.coverImage ? 
+		`<img src="${story.coverImage}" alt="${story.title} Cover" class="cover-image">` :
+		`<div class="cover-placeholder"><i class="fas fa-book"></i></div>`;
+
+	// Create tags HTML (show first 5 tags)
+	let tagsHtml = '';
+	if (story.tags && story.tags.length > 0) {
+		const displayTags = story.tags.slice(0, 5);
+		tagsHtml = `
+			<div class="work-tags">
+				${displayTags.map(tag => `<span class="work-tag">${tag}</span>`).join('')}
+			</div>
+		`;
+	}
+
+	// Build the card HTML with new structure
 	card.innerHTML = `
-		<div class="story-header">
-			<h3 class="story-title">${story.title}</h3>
-			<div class="content-rating ${story.contentRating}">${story.contentRating.toUpperCase()}</div>
+		<div class="work-cover">
+			${coverImageHtml}
 		</div>
-		<p class="story-excerpt">${story.excerpt}</p>
-		<div class="story-author">
-			${story.authorPicture ? 
-				`<img src="${story.authorPicture}" alt="${story.author}" class="author-avatar">` : 
-				`<div class="author-avatar-placeholder">${story.author.charAt(0).toUpperCase()}</div>`
-			}
-			<span>by ${story.author}</span>
-		</div>
-		<div class="story-stats">
-			<span class="story-meta">${metadata}</span>
-			<span class="word-count">${story.wordCount.toLocaleString()} words</span>
+		<div class="work-info">
+			<h3 class="work-title">${story.title}</h3>
+			<p class="work-author">by ${story.author}</p>
+			<p class="work-description">${story.description || 'No description available for this story.'}</p>
+			${tagsHtml}
+			<div class="work-meta">
+				<span class="work-date">${metadata}</span>
+				<span class="work-stats">${story.wordCount.toLocaleString()} words</span>
+			</div>
 		</div>
 	`;
 

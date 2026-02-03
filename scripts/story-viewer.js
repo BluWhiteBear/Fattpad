@@ -1,11 +1,13 @@
 // Story viewer functionality
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, doc, getDoc, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { firebaseConfig } from '../firebase-config-public.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // DOM elements
 const loadingEl = document.getElementById('loading');
@@ -255,20 +257,44 @@ function setupEventListeners() {
     document.getElementById('report-btn').addEventListener('click', () => {
         alert('Story reported. Thank you for helping keep our community safe.');
     });
+    
+    // Auth state listener for like button
+    auth.onAuthStateChanged((user) => {
+        updateLikeButtonState(!!user);
+    });
 }
 
 /**
  * Handle like button click
  */
 async function handleLike() {
-    if (!currentStory || !currentStoryId) return;
+    console.log('🔍 handleLike called');
+    console.log('🔍 currentStory:', currentStory);
+    console.log('🔍 currentStoryId:', currentStoryId);
+    
+    // Check if user is authenticated
+    if (!auth.currentUser) {
+        console.log('❌ User not authenticated');
+        return;
+    }
+    
+    if (!currentStory || !currentStoryId) {
+        console.log('❌ No current story or story ID');
+        return;
+    }
+    
+    console.log('🔍 Starting like/unlike process...');
     
     try {
         // Check if already liked (using localStorage to track)
         const likedStories = JSON.parse(localStorage.getItem('fattpad_liked_stories') || '[]');
         const alreadyLiked = likedStories.includes(currentStoryId);
         
+        console.log('🔍 Already liked?', alreadyLiked);
+        console.log('🔍 Liked stories list:', likedStories);
+        
         if (alreadyLiked) {
+            console.log('🔍 Attempting to unlike...');
             // Unlike
             const index = likedStories.indexOf(currentStoryId);
             likedStories.splice(index, 1);
@@ -276,6 +302,11 @@ async function handleLike() {
             
             if (currentStory.source === 'firebase') {
                 const storyRef = doc(db, 'stories', currentStoryId);
+                console.log('🔍 Attempting to update story:', currentStoryId);
+                console.log('🔍 Update data:', { likes: increment(-1) });
+                console.log('🔍 Current user auth state:', auth?.currentUser?.uid || 'Not authenticated');
+                console.log('🔍 Story author ID:', currentStory.authorId || 'No author ID');
+                
                 await updateDoc(storyRef, {
                     likes: increment(-1)
                 });
@@ -285,12 +316,18 @@ async function handleLike() {
             updateLikeButton(currentStory.likes, false);
             
         } else {
+            console.log('🔍 Attempting to like...');
             // Like
             likedStories.push(currentStoryId);
             localStorage.setItem('fattpad_liked_stories', JSON.stringify(likedStories));
             
             if (currentStory.source === 'firebase') {
                 const storyRef = doc(db, 'stories', currentStoryId);
+                console.log('🔍 Attempting to update story:', currentStoryId);
+                console.log('🔍 Update data:', { likes: increment(1) });
+                console.log('🔍 Current user auth state:', auth?.currentUser?.uid || 'Not authenticated');
+                console.log('🔍 Story author ID:', currentStory.authorId || 'No author ID');
+                
                 await updateDoc(storyRef, {
                     likes: increment(1)
                 });
@@ -328,6 +365,23 @@ function updateLikeButton(likeCount, isLiked = null) {
         likeBtnEl.classList.remove('liked');
         likeIcon.className = 'far fa-heart';
         likeText.textContent = 'Like';
+    }
+}
+
+/**
+ * Update like button enabled/disabled state based on auth
+ */
+function updateLikeButtonState(isAuthenticated) {
+    if (isAuthenticated) {
+        likeBtnEl.disabled = false;
+        likeBtnEl.style.opacity = '1';
+        likeBtnEl.style.cursor = 'pointer';
+        likeBtnEl.title = '';
+    } else {
+        likeBtnEl.disabled = true;
+        likeBtnEl.style.opacity = '0.5';
+        likeBtnEl.style.cursor = 'not-allowed';
+        likeBtnEl.title = 'Please log in to like stories';
     }
 }
 
