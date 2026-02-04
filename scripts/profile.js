@@ -78,6 +78,9 @@ function setupEventListeners() {
     // Edit avatar button
     const editAvatarBtn = document.querySelector('.btn.btn-danger.position-absolute');
     if (editAvatarBtn) editAvatarBtn.addEventListener('click', editAvatar);
+    
+    // Add event listeners for clickable stats
+    setupStatLinks();
 }
 
 /**
@@ -608,6 +611,30 @@ async function migrateLocalUserStories(userId) {
     } catch (error) {
         console.error('❌ Error migrating stories:', error);
     }
+}
+
+/**
+ * Set up event listeners for clickable stats
+ */
+function setupStatLinks() {
+    const statLinks = document.querySelectorAll('.stat-link');
+    
+    statLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const statType = link.getAttribute('data-stat');
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileUserId = urlParams.get('userId') || currentUser?.uid;
+            
+            if (!profileUserId) return;
+            
+            if (statType === 'followers') {
+                window.location.href = `followers.html?userId=${profileUserId}`;
+            } else if (statType === 'following') {
+                window.location.href = `following.html?userId=${profileUserId}`;
+            }
+        });
+    });
 }
 
 /**
