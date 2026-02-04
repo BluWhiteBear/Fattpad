@@ -905,6 +905,60 @@ async function showPublishDialog() {
 }
 
 // Firebase publishing function
+/**
+ * Validate story content before publishing
+ */
+function validateStoryContent() {
+    const title = document.getElementById('story-title').value;
+    const content = getStoryContent();
+    const description = document.getElementById('story-description').value;
+    const tags = getSelectedTags();
+    
+    const errors = [];
+    
+    // Title validation
+    if (!title || !title.trim()) {
+        errors.push('Title is required');
+    } else if (title.trim().length < 5) {
+        errors.push('Title must be at least 5 characters long');
+    }
+    
+    // Description validation
+    if (!description || !description.trim()) {
+        errors.push('Description is required');
+    }
+    
+    // Content validation
+    if (!content || !content.trim()) {
+        errors.push('Story content is required');
+    } else {
+        // Get plain text content to count characters properly
+        let plainTextContent = '';
+        if (tinymceEditor) {
+            plainTextContent = tinymceEditor.getContent({format: 'text'});
+        } else {
+            // Strip HTML tags for character count
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            plainTextContent = tempDiv.textContent || tempDiv.innerText || '';
+        }
+        
+        if (plainTextContent.trim().length < 100) {
+            errors.push('Story content must be at least 100 characters long');
+        }
+    }
+    
+    // Tags validation
+    if (!tags || tags.length < 5) {
+        errors.push('At least 5 tags are required');
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
+
 async function publishToFirebase() {
     // Double-check authentication before proceeding
     const firebaseUser = auth?.currentUser;
@@ -924,18 +978,21 @@ async function publishToFirebase() {
         showNotificationMessage('Firebase not properly configured. Cannot publish online.', 'error');
         return;
     }
-    
-    const title = document.getElementById('story-title').value || 'Untitled Story';
+
+    // Validate story content
+    const validation = validateStoryContent();
+    if (!validation.isValid) {
+        const errorMessage = validation.errors.join('\n• ');
+        showNotificationMessage(`Please fix the following issues:\n• ${errorMessage}`, 'error');
+        return;
+    }
+
+    const title = document.getElementById('story-title').value;
     const content = getStoryContent();
     const rating = document.getElementById('content-rating-select').value;
     const description = document.getElementById('story-description').value;
     const coverUrl = document.getElementById('cover-url').value;
     const tags = getSelectedTags();
-    
-    if (!title.trim() || !content.trim()) {
-        showNotificationMessage('Please add a title and content before publishing', 'error');
-        return;
-    }
     
     const storyId = generateStoryId();
     
@@ -1223,18 +1280,21 @@ function checkFirebaseConfiguration() {
 
 // Local publishing system for testing without Firebase
 async function publishLocally() {
-    const title = document.getElementById('story-title').value || 'Untitled Story';
+    // Validate story content
+    const validation = validateStoryContent();
+    if (!validation.isValid) {
+        const errorMessage = validation.errors.join('\n• ');
+        showNotificationMessage(`Please fix the following issues:\n• ${errorMessage}`, 'error');
+        return;
+    }
+
+    const title = document.getElementById('story-title').value;
     const content = getStoryContent();
     const rating = document.getElementById('content-rating-select').value;
     const description = document.getElementById('story-description').value;
     const coverUrl = document.getElementById('cover-url').value;
     const tags = getSelectedTags();
     const localStorageUser = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    if (!content.trim()) {
-        showNotificationMessage('Please write some content before publishing', 'error');
-        return;
-    }
     
     // Save to localStorage as published story
     const storyId = currentStory?.id || generateStoryId();
