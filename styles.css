@@ -628,6 +628,57 @@ h1 {
     object-fit: cover;
 }
 
+/* Notifications Button Styles */
+.notifications-btn {
+    background: transparent;
+    border: 2px solid var(--accent-color);
+    border-radius: 50%;
+    padding: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-right: 12px;
+}
+
+.notifications-btn:hover {
+    border-color: var(--text-primary);
+    background: rgba(233,119,117,0.1);
+    box-shadow: 0 0 8px rgba(233,119,117,0.3);
+}
+
+.notifications-btn i {
+    color: var(--accent-color);
+    font-size: 16px;
+    transition: color 0.2s;
+}
+
+.notifications-btn:hover i {
+    color: var(--text-primary);
+}
+
+.notification-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    text-align: center;
+}
+
 /* Mobile Navigation Styles */
 .mobile-menu-toggle {
     display: none;
@@ -903,6 +954,144 @@ h1 {
 .dropdown-item i {
     width: 16px;
     text-align: center;
+}
+
+/* Notifications Dropdown Styles */
+.notifications-dropdown {
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-secondary);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    width: 320px;
+    max-height: 400px;
+    z-index: 1000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.notifications-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid var(--text-secondary);
+}
+
+.notifications-dropdown-header h4 {
+    color: var(--text-primary);
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.mark-all-read {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+.mark-all-read:hover {
+    color: var(--text-primary);
+}
+
+.notifications-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 280px;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(153,130,130,0.2);
+    position: relative;
+    transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+    background: var(--bg-primary);
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item.unread {
+    background: rgba(233,119,117,0.05);
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-text {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.3;
+    margin-bottom: 4px;
+}
+
+.notification-time {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.notification-badge.unread {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    margin-left: 8px;
+    margin-top: 6px;
+    flex-shrink: 0;
+}
+
+.notification-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.notification-empty i {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    opacity: 0.5;
+}
+
+.notification-empty p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.notifications-footer {
+    border-top: 1px solid var(--text-secondary);
+    padding: 12px;
+}
+
+.view-all-btn {
+    width: 100%;
+    background: none;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.view-all-btn:hover {
+    background: var(--accent-color);
+    color: var(--text-primary);
 }
 
 /* Footer Styles */

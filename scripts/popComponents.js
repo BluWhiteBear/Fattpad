@@ -46,6 +46,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	<!-- Desktop actions -->
 	<div class="navbar-actions">
 		<button class="navbar-btn" onclick="window.location.href='${pagesPath}login.html'">log in</button>
+		<button class="notifications-btn" style="display: none;" title="Notifications">
+			<i class="fas fa-bell"></i>
+			<span class="notification-badge" style="display: none;"></span>
+		</button>
 		<button class="profile-btn" style="display: none;">
 			<img alt="profile" class="profile-img">
 		</button>

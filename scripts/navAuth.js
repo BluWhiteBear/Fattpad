@@ -33,19 +33,24 @@ function updateNavbarAuth(user = null) {
     );
     const profileBtn = document.querySelector('.profile-btn');
     const profileImg = document.querySelector('.profile-img');
+    const notificationsBtn = document.querySelector('.notifications-btn');
     const footerLogout = document.querySelector('.footer-logout');
     
     console.log('updateNavbarAuth called:', { 
         hasUser: !!user, 
         userData: user,
         loginBtn: !!loginBtn, 
-        profileBtn: !!profileBtn 
+        profileBtn: !!profileBtn,
+        notificationsBtn: !!notificationsBtn
     });
     
     if (user && loginBtn && profileBtn) {
-        // User is logged in - hide login button, show profile
+        // User is logged in - hide login button, show profile and notifications
         loginBtn.style.display = 'none';
         profileBtn.style.display = 'flex';
+        if (notificationsBtn) {
+            notificationsBtn.style.display = 'flex';
+        }
         
         // Show footer logout
         if (footerLogout) {
@@ -68,6 +73,14 @@ function updateNavbarAuth(user = null) {
             e.stopPropagation();
             toggleProfileDropdown(user);
         };
+
+        // Add click handler to notifications button
+        if (notificationsBtn) {
+            notificationsBtn.onclick = function(e) {
+                e.stopPropagation();
+                toggleNotificationsDropdown();
+            };
+        }
     } else {
         // User is not logged in - show login button, hide profile
         if (loginBtn) {
@@ -75,6 +88,9 @@ function updateNavbarAuth(user = null) {
         }
         if (profileBtn) {
             profileBtn.style.display = 'none';
+        }
+        if (notificationsBtn) {
+            notificationsBtn.style.display = 'none';
         }
         
         // Hide footer logout
@@ -150,8 +166,70 @@ function toggleProfileDropdown(user) {
 
 function closeDropdownOutside(e) {
     const dropdown = document.querySelector('.profile-dropdown');
+    const notificationDropdown = document.querySelector('.notifications-dropdown');
+    
     if (dropdown && !dropdown.contains(e.target)) {
         dropdown.remove();
         document.removeEventListener('click', closeDropdownOutside);
     }
+    
+    if (notificationDropdown && !notificationDropdown.contains(e.target) && !e.target.closest('.notifications-btn')) {
+        notificationDropdown.remove();
+        document.removeEventListener('click', closeDropdownOutside);
+    }
+}
+
+function toggleNotificationsDropdown() {
+    // Remove existing dropdown if any
+    const existingDropdown = document.querySelector('.notifications-dropdown');
+    if (existingDropdown) {
+        existingDropdown.remove();
+        return;
+    }
+
+    // Create notifications dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'notifications-dropdown';
+    dropdown.innerHTML = `
+        <div class="notifications-dropdown-header">
+            <h4>Notifications</h4>
+            <button class="mark-all-read" style="display: none;">Mark all read</button>
+        </div>
+        <div class="notifications-list">
+            <div class="notification-item sample">
+                <div class="notification-content">
+                    <div class="notification-text">Welcome to Fattpad! Start exploring stories or create your own.</div>
+                    <div class="notification-time">Just now</div>
+                </div>
+                <div class="notification-badge unread"></div>
+            </div>
+            <div class="notification-item sample">
+                <div class="notification-content">
+                    <div class="notification-text">Your story publishing feature is ready to use!</div>
+                    <div class="notification-time">2 hours ago</div>
+                </div>
+            </div>
+            <div class="notification-empty" style="display: none;">
+                <i class="fas fa-bell-slash"></i>
+                <p>No new notifications</p>
+            </div>
+        </div>
+        <div class="notifications-footer">
+            <button class="view-all-btn">View All Notifications</button>
+        </div>
+    `;
+
+    // Position dropdown
+    const notificationsBtn = document.querySelector('.notifications-btn');
+    const rect = notificationsBtn.getBoundingClientRect();
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = (rect.bottom + 8) + 'px';
+    dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+
+    document.body.appendChild(dropdown);
+
+    // Close dropdown when clicking outside
+    setTimeout(() => {
+        document.addEventListener('click', closeDropdownOutside);
+    }, 0);
 }
