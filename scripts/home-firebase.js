@@ -132,7 +132,7 @@ function createStoryCard(story) {
     card.addEventListener('click', () => {
         // Check if it's a local story or Firebase story
         if (story.isLocal || !story.authorId) {
-            window.location.href = `pages/story-local.html?id=${story.id}`;
+            window.location.href = `pages/story.html?id=${story.id}`;
         } else {
             window.location.href = `pages/story.html?id=${story.id}`;
         }

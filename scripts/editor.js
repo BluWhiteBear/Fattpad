@@ -1353,6 +1353,6 @@ async function publishLocally() {
     
     // Redirect to view the story
     setTimeout(() => {
-        window.location.href = `pages/story-local.html?id=${storyId}`;
+        window.location.href = `pages/story.html?id=${storyId}`;
     }, 2000);
 }
