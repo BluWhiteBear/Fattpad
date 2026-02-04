@@ -92,6 +92,11 @@
     color: var(--text-primary) !important;
 }
 
+/* Fix profile name alignment - override global h1 center alignment */
+#profile-name {
+    text-align: left !important;
+}
+
 .profile-container .text-muted,
 .profile-container .card-text,
 .profile-container small {
