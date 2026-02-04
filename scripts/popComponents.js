@@ -25,14 +25,14 @@ document.addEventListener("DOMContentLoaded", function() {
 	
 	<!-- Desktop navigation links -->
 	<ul class="navbar-links">
-		<li><a href="${rootPath}">home</a></li>
-		<li><a href="editor">write</a></li>
+		<li><a href="${rootPath}index.html">home</a></li>
+		<li><a href="editor.html">write</a></li>
 		<li><a href="#library">library</a></li>
 	</ul>
 	
 	<!-- Desktop actions -->
 	<div class="navbar-actions">
-		<button class="navbar-btn" onclick="window.location.href='login'">log in</button>
+		<button class="navbar-btn" onclick="window.location.href='login.html'">log in</button>
 		<button class="notifications-btn" style="display: none;" title="Notifications">
 			<i class="fas fa-bell"></i>
 			<span class="notification-badge" style="display: none;"></span>
@@ -45,11 +45,11 @@ document.addEventListener("DOMContentLoaded", function() {
 	<!-- Mobile navigation dropdown -->
 	<div class="mobile-nav-dropdown" id="mobileNavDropdown">
 		<div class="mobile-nav-content">
-			<a href="${rootPath}" class="mobile-nav-item">home</a>
-			<a href="editor" class="mobile-nav-item">write</a>
+			<a href="${rootPath}index.html" class="mobile-nav-item">home</a>
+			<a href="editor.html" class="mobile-nav-item">write</a>
 			<a href="#library" class="mobile-nav-item">library</a>
 			<div class="mobile-nav-divider"></div>
-			<button class="mobile-nav-btn" onclick="window.location.href='login'">log in</button>
+			<button class="mobile-nav-btn" onclick="window.location.href='login.html'">log in</button>
 			<button class="mobile-profile-btn" style="display: none;">
 				<img alt="profile" class="mobile-profile-img" src="${rootPath}img/pfp-default.png">
 				<span>profile</span>
@@ -62,10 +62,10 @@ document.addEventListener("DOMContentLoaded", function() {
 <footer class="footer">
     <div class="footer-main">
         <ul class="footer-links">
-            <li><a href="${rootPath}">home</a></li>
-            <li><a href="editor">write</a></li>
+            <li><a href="${rootPath}index.html">home</a></li>
+            <li><a href="editor.html">write</a></li>
             <li><a href="#library">library</a></li>
-            <li><a href="tos">terms of service</a></li>
+            <li><a href="tos.html">terms of service</a></li>
             <li class="footer-logout" style="display: none;"><a href="#" onclick="logout(); return false;">logout</a></li>
         </ul>
     </div>
