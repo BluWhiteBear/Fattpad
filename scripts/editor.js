@@ -1205,14 +1205,14 @@ function updateAuthUI(user) {
     if (user) {
         publishBtn.disabled = false;
         
-        // Always show "Publish" - let the user choose when they click
-        publishBtn.textContent = 'Publish';
+        // Always show "Save" - let the user choose when they click
+        publishBtn.textContent = 'Save';
         publishBtn.onclick = publishStory;
         
         console.log('User authenticated:', user.name || user.displayName);
     } else {
         publishBtn.disabled = true;
-        publishBtn.textContent = 'Login to Publish';
+        publishBtn.textContent = 'Login to Save';
         publishBtn.onclick = () => {
             console.log('🔄 Login button clicked, redirecting to login.html');
             console.log('Current location:', window.location.href);
