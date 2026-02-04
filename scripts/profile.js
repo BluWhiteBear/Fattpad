@@ -582,7 +582,7 @@ window.editWork = function(storyId) {
 };
 
 window.viewWork = function(storyId) {
-    window.location.href = `pages/story.html?id=${storyId}`;
+    window.location.href = `story.html?id=${storyId}`;
 };
 
 window.deleteWork = function(storyId, title) {
