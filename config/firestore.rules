@@ -31,6 +31,18 @@ service cloud.firestore {
       allow read: if request.auth != null;
     }
     
+    match /notifications/{notificationId} {
+      // Allow authenticated users to create notifications for others
+      allow create: if request.auth != null;
+      // Allow users to read their own notifications
+      allow read: if request.auth != null && 
+                 request.auth.uid == resource.data.userId;
+      // Allow users to update their own notifications (mark as read)
+      allow update: if request.auth != null && 
+                   request.auth.uid == resource.data.userId &&
+                   onlyUpdatingReadStatus(request.resource.data, resource.data);
+    }
+    
     // Catch-all for debugging
     match /{document=**} {
       allow read: if true;
@@ -44,5 +56,11 @@ service cloud.firestore {
            .hasOnly(['stats', 'updatedAt']) &&
            newData.stats.diff(existingData.stats).affectedKeys()
            .hasOnly(['followers', 'following']);
+  }
+  
+  // Helper function to check if only read status is being updated
+  function onlyUpdatingReadStatus(newData, existingData) {
+    return newData.diff(existingData).affectedKeys()
+           .hasOnly(['read']);
   }
 }

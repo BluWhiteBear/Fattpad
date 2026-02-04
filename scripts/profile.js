@@ -653,6 +653,31 @@ function setupStatLinks() {
 }
 
 /**
+ * Create a notification for a user
+ */
+async function createNotification(userId, type, data) {
+    try {
+        const notificationId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const notificationRef = doc(db, 'notifications', notificationId);
+        
+        const notification = {
+            id: notificationId,
+            userId: userId, // User who will receive the notification
+            type: type, // 'follow', 'like', 'comment', etc.
+            data: data, // Additional data specific to notification type
+            read: false,
+            createdAt: new Date()
+        };
+        
+        await setDoc(notificationRef, notification);
+        console.log('✅ Notification created:', notification);
+        
+    } catch (error) {
+        console.error('❌ Error creating notification:', error);
+    }
+}
+
+/**
  * Check if current user is following the profile user
  */
 async function checkFollowStatus(targetUserId) {
@@ -730,6 +755,13 @@ async function toggleFollow(targetUserId) {
                 followerId: currentUser.uid,
                 followingId: targetUserId,
                 createdAt: new Date()
+            });
+            
+            // Create notification for the user being followed
+            await createNotification(targetUserId, 'follow', {
+                followerId: currentUser.uid,
+                followerName: currentUser.displayName || currentUser.email || 'Someone',
+                followerPhotoURL: currentUser.photoURL || null
             });
             
             // Update both users' stats
