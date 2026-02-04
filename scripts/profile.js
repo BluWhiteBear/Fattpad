@@ -456,7 +456,7 @@ function createWorkCard(story, storyId, isOwnProfile = true, source = 'firebase'
                 <p class="card-text text-muted mb-3">${story.description || 'No description'}</p>
                 <div class="d-flex gap-3 mb-3 small text-muted">
                     <span><i class="fas fa-eye text-info"></i> ${formatNumber(story.views || 0)}</span>
-                    <span><i class="fas fa-heart text-danger"></i> ${formatNumber(story.likes || 0)}</span>
+                    <span><img src="img/bite_1.svg" alt="Bites" style="width: 14px; height: 14px; vertical-align: text-bottom;"> ${formatNumber(story.likes || 0)}</span>
                     <span><i class="fas fa-book text-warning"></i> ${formatNumber(story.wordCount || 0)} words</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
