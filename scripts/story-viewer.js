@@ -384,11 +384,11 @@ function updateLikeButton(likeCount, isLiked = null) {
     if (isLiked) {
         likeBtnEl.classList.add('liked');
         likeIcon.className = 'fas fa-heart';
-        likeText.textContent = 'Liked';
+        likeText.textContent = 'Bitten';
     } else {
         likeBtnEl.classList.remove('liked');
         likeIcon.className = 'far fa-heart';
-        likeText.textContent = 'Like';
+        likeText.textContent = 'Bite';
     }
 }
 
