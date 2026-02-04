@@ -378,7 +378,6 @@ function initializeEditor() {
     const contentTextarea = document.getElementById('story-content');
     const wordCountSpan = document.getElementById('word-count');
     const saveStatus = document.getElementById('save-status');
-    const saveDraftBtn = document.getElementById('save-draft');
     const publishBtn = document.getElementById('publish-story');
     const ratingSelect = document.getElementById('content-rating-select');
     
@@ -396,7 +395,6 @@ function initializeEditor() {
         }
     });
 
-    saveDraftBtn.addEventListener('click', saveDraft);
     publishBtn.addEventListener('click', publishStory);
     
     // Initialize new metadata fields
@@ -406,7 +404,7 @@ function initializeEditor() {
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === 's') {
             e.preventDefault();
-            saveDraft();
+            saveLocally();
         }
     });
     
@@ -582,7 +580,7 @@ async function autoSave() {
     saveStatus.className = 'save-status saving';
     
     try {
-        await saveDraft(false); // Silent save
+        await saveLocally(false); // Silent save
         saveStatus.textContent = 'Auto-saved';
         saveStatus.className = 'save-status saved';
         hasUnsavedChanges = false;
@@ -1276,6 +1274,78 @@ function checkFirebaseConfiguration() {
         console.log('❌ Error checking Firebase configuration:', error);
         return false;
     }
+}
+
+// Local save function (like publishLocally but without strict validation and redirect)
+async function saveLocally(showNotification = true) {
+    const title = document.getElementById('story-title').value || 'Untitled Story';
+    const content = getStoryContent();
+    const rating = document.getElementById('content-rating-select').value;
+    const description = document.getElementById('story-description').value;
+    const coverUrl = document.getElementById('cover-url').value;
+    const tags = getSelectedTags();
+    const localStorageUser = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // Save to localStorage (no strict validation for saves)
+    const storyId = currentStory?.id || generateStoryId();
+    
+    // Calculate word count properly for HTML content
+    let wordCount = 0;
+    if (content) {
+        if (tinymceEditor) {
+            const plainText = tinymceEditor.getContent({format: 'text'});
+            wordCount = plainText.trim() ? plainText.trim().split(/\s+/).length : 0;
+        } else {
+            wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+        }
+    }
+    
+    const storyData = {
+        id: storyId,
+        title,
+        content,
+        excerpt: content.substring(0, 200),
+        description: description.trim() || content.substring(0, 200),
+        contentRating: rating,
+        tags: tags,
+        coverUrl: coverUrl.trim() || null,
+        authorId: localStorageUser.id || 'local_user',
+        updatedAt: Date.now(),
+        wordCount: wordCount,
+        views: 0,
+        likes: 0,
+        isPublished: false, // This is a save, not a publish
+        isLocal: true
+    };
+    
+    if (!currentStory) {
+        storyData.createdAt = Date.now();
+        currentStory = storyData;
+        
+        // Update URL without page reload
+        const url = new URL(window.location);
+        url.searchParams.set('id', storyId);
+        window.history.replaceState({}, '', url);
+    }
+    
+    // Save to user's stories collection in localStorage
+    const userStories = JSON.parse(localStorage.getItem('fattpad_stories') || '[]');
+    const userStoryIndex = userStories.findIndex(s => s.id === storyId);
+    
+    if (userStoryIndex >= 0) {
+        userStories[userStoryIndex] = { ...userStories[userStoryIndex], ...storyData };
+    } else {
+        userStories.push(storyData);
+    }
+    
+    localStorage.setItem('fattpad_stories', JSON.stringify(userStories));
+    hasUnsavedChanges = false;
+    
+    if (showNotification) {
+        showNotificationMessage('Story saved locally!', 'success');
+    }
+    
+    return storyId;
 }
 
 // Local publishing system for testing without Firebase
