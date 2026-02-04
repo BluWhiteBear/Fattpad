@@ -285,9 +285,9 @@ function createWorkCard(story, storyId) {
                 </div>
                 <p class="card-text text-muted mb-3">${story.description || 'No description'}</p>
                 <div class="d-flex gap-3 mb-3 small text-muted">
-                    <span><i class="fas fa-eye"></i> ${formatNumber(story.views || 0)}</span>
-                    <span><i class="fas fa-heart"></i> ${formatNumber(story.likes || 0)}</span>
-                    <span><i class="fas fa-book"></i> ${formatNumber(story.wordCount || 0)} words</span>
+                    <span><i class="fas fa-eye text-info"></i> ${formatNumber(story.views || 0)}</span>
+                    <span><i class="fas fa-heart text-danger"></i> ${formatNumber(story.likes || 0)}</span>
+                    <span><i class="fas fa-book text-warning"></i> ${formatNumber(story.wordCount || 0)} words</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="badge bg-secondary">${getRatingLabel(story.contentRating)}</span>

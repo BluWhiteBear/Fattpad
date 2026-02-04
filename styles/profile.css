@@ -9,26 +9,49 @@
 .card.bg-dark {
     background-color: var(--bg-secondary) !important;
     border: 1px solid var(--border-color) !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card.bg-dark:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    border-color: var(--accent-color);
 }
 
 /* Work card specific styling */
-.card .badge.bg-success {
+#works .card {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    transition: all 0.3s ease;
+}
+
+#works .card:hover {
+    border-color: var(--accent-color) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Card text styling */
+#works .card .card-title {
+    color: var(--text-primary) !important;
+    font-weight: 600;
+}
+
+#works .card .card-text {
+    color: var(--text-secondary) !important;
+    line-height: 1.5;
+}
+
+/* Work stats styling */
+#works .card .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Badge styling for work cards */
+#works .badge.bg-success {
     background-color: #28a745 !important;
+    color: white !important;
 }
 
-.card .badge.bg-warning {
+#works .badge.bg-warning {
     background-color: #ffc107 !important;
-    color: #000 !important;
+    color: #212529 !important;
 }
 
-.card .badge.bg-secondary {
+#works .badge.bg-secondary {
     background-color: var(--text-secondary) !important;
     color: var(--bg-primary) !important;
 }
