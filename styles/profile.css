@@ -97,6 +97,54 @@
     text-align: left !important;
 }
 
+/* Profile actions container */
+.profile-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.profile-actions .btn {
+    margin-bottom: 0;
+}
+
+/* Follow button styles */
+.follow-btn {
+    transition: all 0.3s ease;
+}
+
+.follow-btn.following {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--text-secondary) !important;
+    color: var(--text-secondary) !important;
+}
+
+.follow-btn.following:hover {
+    background-color: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.follow-btn.following:hover .fas::before {
+    content: "\f00d"; /* X icon */
+}
+
+.follow-btn.following:hover {
+    /* Show "Unfollow" text on hover */
+}
+
+.follow-btn.following:hover::after {
+    content: " Unfollow";
+}
+
+.follow-btn.following span {
+    display: none;
+}
+
+.follow-btn.following:hover span {
+    display: none;
+}
+
 .profile-container .text-muted,
 .profile-container .card-text,
 .profile-container small {

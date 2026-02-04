@@ -1,6 +1,6 @@
 // Profile page functionality with Firebase integration
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { firebaseConfig } from '../config/firebase-config-public.js';
 
@@ -61,7 +61,7 @@ function setupEventListeners() {
     // The Bootstrap tab functionality is handled by data-bs-toggle="tab"
     
     // Edit profile button
-    const editBtn = document.querySelector('.col .btn-outline-danger');
+    const editBtn = document.querySelector('.edit-profile-btn');
     if (editBtn) {
         console.log('Edit profile button found, adding event listener');
         editBtn.addEventListener('click', editProfile);
@@ -136,6 +136,10 @@ async function loadUserProfile(userId, isOwnProfile = true) {
         
         displayUserProfile(isOwnProfile);
         
+        // Check follow status if viewing someone else's profile
+        if (!isOwnProfile && currentUser) {
+            await checkFollowStatus(userId);
+        }
     } catch (error) {
         console.error('❌ Error loading user profile:', error);
         showError('Failed to load profile');
@@ -199,12 +203,19 @@ function displayUserProfile(isOwnProfile = true) {
     document.getElementById('profile-bio').textContent = currentUserProfile.bio || (isOwnProfile ? 'No bio yet. Click Edit Profile to add one!' : 'This user hasn\'t written a bio yet.');
     
     // Show/hide edit controls based on whether it's the user's own profile
-    const editProfileBtn = document.querySelector('.col .btn-outline-danger');
+    const editProfileBtn = document.querySelector('.edit-profile-btn');
+    const followBtn = document.querySelector('.follow-btn');
     const editAvatarBtn = document.querySelector('.btn.btn-danger.position-absolute');
     const newWorkBtn = document.querySelector('.btn.btn-danger');
     
     if (editProfileBtn) {
         editProfileBtn.style.display = isOwnProfile ? 'inline-block' : 'none';
+    }
+    if (followBtn) {
+        followBtn.style.display = isOwnProfile ? 'none' : 'inline-block';
+        if (!isOwnProfile) {
+            followBtn.addEventListener('click', () => toggleFollow(currentUserProfile.uid));
+        }
     }
     if (editAvatarBtn) {
         editAvatarBtn.style.display = isOwnProfile ? 'flex' : 'none';
@@ -224,6 +235,11 @@ function displayUserProfile(isOwnProfile = true) {
 async function loadUserStats(userId = null) {
     try {
         const targetUserId = userId || currentUser.uid;
+        
+        // Get user profile to access followers/following stats
+        const userDocRef = doc(db, 'users', targetUserId);
+        const userDoc = await getDoc(userDocRef);
+        const userStats = userDoc.exists() ? userDoc.data().stats : {};
         
         // Get user's published stories count and stats
         const storiesRef = collection(db, 'stories');
@@ -251,6 +267,14 @@ async function loadUserStats(userId = null) {
                 // Works count (1st column)
                 const worksCountElement = statColumns[0].querySelector('.h4');
                 if (worksCountElement) worksCountElement.textContent = storiesSnapshot.size;
+                
+                // Followers count (2nd column)
+                const followersCountElement = statColumns[1].querySelector('.h4');
+                if (followersCountElement) followersCountElement.textContent = formatNumber(userStats.followers || 0);
+                
+                // Following count (3rd column)
+                const followingCountElement = statColumns[2].querySelector('.h4');
+                if (followingCountElement) followingCountElement.textContent = formatNumber(userStats.following || 0);
                 
                 // Reads count (4th column)
                 const readsCountElement = statColumns[3].querySelector('.h4');
@@ -583,5 +607,126 @@ async function migrateLocalUserStories(userId) {
         
     } catch (error) {
         console.error('❌ Error migrating stories:', error);
+    }
+}
+
+/**
+ * Check if current user is following the profile user
+ */
+async function checkFollowStatus(targetUserId) {
+    if (!currentUser || !targetUserId) return;
+    
+    try {
+        const followDocId = `${currentUser.uid}_${targetUserId}`;
+        const followDocRef = doc(db, 'follows', followDocId);
+        const followDoc = await getDoc(followDocRef);
+        
+        const followBtn = document.querySelector('.follow-btn');
+        if (followBtn) {
+            if (followDoc.exists()) {
+                // User is following
+                followBtn.innerHTML = '<i class="fas fa-check"></i> Following';
+                followBtn.classList.add('following');
+            } else {
+                // User is not following
+                followBtn.innerHTML = '<i class="fas fa-plus"></i> Follow';
+                followBtn.classList.remove('following');
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Error checking follow status:', error);
+    }
+}
+
+/**
+ * Toggle follow/unfollow for a user
+ */
+async function toggleFollow(targetUserId) {
+    if (!currentUser || !targetUserId) return;
+    
+    const followBtn = document.querySelector('.follow-btn');
+    if (!followBtn) return;
+    
+    try {
+        const followDocId = `${currentUser.uid}_${targetUserId}`;
+        const followDocRef = doc(db, 'follows', followDocId);
+        const followDoc = await getDoc(followDocRef);
+        
+        const isCurrentlyFollowing = followDoc.exists();
+        
+        // Disable button during operation
+        followBtn.disabled = true;
+        followBtn.style.opacity = '0.6';
+        
+        if (isCurrentlyFollowing) {
+            // Unfollow: Remove the follow document
+            await deleteDoc(followDocRef);
+            
+            // Update both users' stats
+            await Promise.all([
+                // Decrease follower's following count
+                updateDoc(doc(db, 'users', currentUser.uid), {
+                    'stats.following': increment(-1),
+                    updatedAt: new Date()
+                }),
+                // Decrease target user's followers count
+                updateDoc(doc(db, 'users', targetUserId), {
+                    'stats.followers': increment(-1),
+                    updatedAt: new Date()
+                })
+            ]);
+            
+            // Update UI
+            followBtn.innerHTML = '<i class="fas fa-plus"></i> Follow';
+            followBtn.classList.remove('following');
+            console.log(`✅ Unfollowed user: ${targetUserId}`);
+            
+        } else {
+            // Follow: Create the follow document
+            await setDoc(followDocRef, {
+                followerId: currentUser.uid,
+                followingId: targetUserId,
+                createdAt: new Date()
+            });
+            
+            // Update both users' stats
+            await Promise.all([
+                // Increase follower's following count
+                updateDoc(doc(db, 'users', currentUser.uid), {
+                    'stats.following': increment(1),
+                    updatedAt: new Date()
+                }),
+                // Increase target user's followers count
+                updateDoc(doc(db, 'users', targetUserId), {
+                    'stats.followers': increment(1),
+                    updatedAt: new Date()
+                })
+            ]);
+            
+            // Update UI
+            followBtn.innerHTML = '<i class="fas fa-check"></i> Following';
+            followBtn.classList.add('following');
+            console.log(`✅ Followed user: ${targetUserId}`);
+        }
+        
+        // Re-enable button
+        followBtn.disabled = false;
+        followBtn.style.opacity = '1';
+        
+        // Refresh stats display
+        loadUserStats(targetUserId);
+        
+    } catch (error) {
+        console.error('❌ Error toggling follow:', error);
+        
+        // Re-enable button on error
+        if (followBtn) {
+            followBtn.disabled = false;
+            followBtn.style.opacity = '1';
+        }
+        
+        // Show error message
+        showError('Failed to update follow status. Please try again.');
     }
 }
