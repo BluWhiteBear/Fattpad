@@ -155,7 +155,12 @@ async function displayStory(story) {
         authorName = story.authorName || story.author || 'Anonymous';
     }
     
-    storyAuthorEl.textContent = `by ${authorName}`;
+    // Set author with clickable link if authorId is available
+    if (story.authorId) {
+        storyAuthorEl.innerHTML = `by <a href="profile.html?userId=${story.authorId}" class="author-link">${authorName}</a>`;
+    } else {
+        storyAuthorEl.textContent = `by ${authorName}`;
+    }
     currentAuthorName = authorName;
     
     // Set content rating

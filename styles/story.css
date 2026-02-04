@@ -85,6 +85,17 @@
     font-weight: 500;
 }
 
+.story-author .author-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.story-author .author-link:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+}
+
 .story-metadata {
     display: flex;
     gap: 20px;
