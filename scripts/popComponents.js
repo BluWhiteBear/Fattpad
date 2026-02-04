@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			<span class="notification-badge" style="display: none;"></span>
 		</button>
 		<button class="profile-btn" style="display: none;">
-			<img alt="profile" class="profile-img">
+			<img alt="profile" class="profile-img" src="${rootPath}img/pfp-default.png">
 		</button>
 	</div>
 	
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			<div class="mobile-nav-divider"></div>
 			<button class="mobile-nav-btn" onclick="window.location.href='login.html'">log in</button>
 			<button class="mobile-profile-btn" style="display: none;">
-				<img alt="profile" class="mobile-profile-img">
+				<img alt="profile" class="mobile-profile-img" src="${rootPath}img/pfp-default.png">
 				<span>profile</span>
 			</button>
 		</div>
