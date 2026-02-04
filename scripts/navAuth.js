@@ -165,10 +165,10 @@ function toggleProfileDropdown(user) {
             </div>
         </div>
         <hr class="dropdown-divider">
-        <button class="dropdown-item" onclick="window.location.href='profile.html'">
-            <i class="fas fa-user"></i> Profile
+        <button class="dropdown-item" onclick="window.location.href='profile'">
+            <i class="fas fa-user me-2"></i>Profile
         </button>
-        <button class="dropdown-item" onclick="window.location.href='settings.html'">
+        <button class="dropdown-item" onclick="window.location.href='settings'">
             <i class="fas fa-cog"></i> Settings
         </button>
         <button class="dropdown-item logout-btn" onclick="logout()">

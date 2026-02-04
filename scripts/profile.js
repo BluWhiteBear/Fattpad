@@ -377,7 +377,7 @@ async function loadUserWorks(userId = null, isOwnProfile = true) {
                         <i class="fas fa-pen-nib text-muted display-1 mb-3"></i>
                         <h3 class="text-light mb-3">No works yet</h3>
                         <p class="text-muted mb-4">Start writing your first story!</p>
-                        <button class="btn btn-danger" onclick="window.location.href='editor.html'">Create New Work</button>
+                        <button class="btn btn-danger" onclick="window.location.href='editor'">Create New Work</button>
                     </div>
                 `;
             }
