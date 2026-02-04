@@ -15,6 +15,20 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
       // Allow reading other users' profiles (for public display)
       allow read: if true;
+      // Allow updating stats fields for follow/unfollow operations
+      allow update: if request.auth != null && 
+                   onlyUpdatingStats(request.resource.data, resource.data);
+    }
+    
+    match /follows/{followId} {
+      // Allow authenticated users to create follow relationships
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.followerId;
+      // Allow users to delete their own follow relationships
+      allow delete: if request.auth != null && 
+                   request.auth.uid == resource.data.followerId;
+      // Allow reading follow relationships for checking follow status
+      allow read: if request.auth != null;
     }
     
     // Catch-all for debugging
@@ -22,5 +36,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+  }
+  
+  // Helper function to check if only stats are being updated
+  function onlyUpdatingStats(newData, existingData) {
+    return newData.diff(existingData).affectedKeys()
+           .hasOnly(['stats', 'updatedAt']) &&
+           newData.stats.diff(existingData.stats).affectedKeys()
+           .hasOnly(['followers', 'following']);
   }
 }
