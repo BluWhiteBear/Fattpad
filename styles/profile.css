@@ -586,7 +586,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 10000;
 }
 
 .modal {
@@ -597,6 +597,20 @@
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    border: 1px solid var(--border-color);
+}
+
+.modal * {
+    color: var(--text-primary);
+}
+
+.modal input,
+.modal textarea {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 4px;
 }
 
 .modal-header {

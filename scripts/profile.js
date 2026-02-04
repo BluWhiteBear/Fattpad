@@ -38,8 +38,13 @@ function setupEventListeners() {
     // The Bootstrap tab functionality is handled by data-bs-toggle="tab"
     
     // Edit profile button
-    const editBtn = document.querySelector('.btn-outline-danger');
-    if (editBtn) editBtn.addEventListener('click', editProfile);
+    const editBtn = document.querySelector('.col .btn-outline-danger');
+    if (editBtn) {
+        console.log('Edit profile button found, adding event listener');
+        editBtn.addEventListener('click', editProfile);
+    } else {
+        console.log('Edit profile button not found');
+    }
     
     // New work button
     const newWorkBtn = document.querySelector('.btn.btn-danger');
@@ -309,8 +314,11 @@ function createWorkCard(story, storyId) {
  * Edit profile functionality
  */
 function editProfile() {
+    console.log('editProfile function called');
     const bio = currentUserProfile?.bio || '';
     const displayName = currentUserProfile?.displayName || '';
+    
+    console.log('Creating modal with bio:', bio, 'displayName:', displayName);
     
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
@@ -339,6 +347,7 @@ function editProfile() {
     `;
     
     document.body.appendChild(modal);
+    console.log('Modal appended to body:', modal);
     
     // Event listeners for modal
     modal.querySelector('.modal-close').addEventListener('click', () => modal.remove());
