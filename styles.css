@@ -1169,3 +1169,23 @@ h1 {
     font-size: 0.98rem;
     color: var(--text-secondary);
 }
+
+/* Bite icon styling */
+.bite-icon {
+    filter: brightness(0) saturate(100%) invert(91%) sepia(8%) saturate(298%) hue-rotate(316deg) brightness(95%) contrast(92%);
+    transition: filter 0.2s ease;
+}
+
+.bite-icon-secondary {
+    filter: brightness(0) saturate(100%) invert(57%) sepia(12%) saturate(859%) hue-rotate(316deg) brightness(89%) contrast(88%);
+    transition: filter 0.2s ease;
+}
+
+.bite-icon-accent {
+    filter: brightness(0) saturate(100%) invert(69%) sepia(35%) saturate(1064%) hue-rotate(313deg) brightness(97%) contrast(91%);
+    transition: filter 0.2s ease;
+}
+
+.action-btn.liked .bite-icon {
+    filter: brightness(0) saturate(100%) invert(69%) sepia(35%) saturate(1064%) hue-rotate(313deg) brightness(97%) contrast(91%);
+}
