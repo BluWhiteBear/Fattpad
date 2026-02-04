@@ -184,7 +184,13 @@ function displayUserProfile(isOwnProfile = true) {
     
     // Update profile picture
     const profilePicture = document.getElementById('profile-picture');
-    profilePicture.src = currentUserProfile.photoURL || currentUser.photoURL || '../img/pfp-default.png';
+    if (isOwnProfile) {
+        // For own profile, check both profile and auth photoURL
+        profilePicture.src = currentUserProfile.photoURL || currentUser.photoURL || '../img/pfp-default.png';
+    } else {
+        // For other users' profiles, only check their profile photoURL
+        profilePicture.src = currentUserProfile.photoURL || '../img/pfp-default.png';
+    }
     profilePicture.alt = currentUserProfile.displayName;
     
     // Update profile info
