@@ -73,7 +73,7 @@ async function initializeTinyMCE() {
             plugins: [
                 'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'help', 'wordcount', 'paste'
+                'insertdatetime', 'media', 'table', 'help', 'wordcount'
             ],
             toolbar: 'undo redo | blocks | ' +
                 'bold italic underline strikethrough | alignleft aligncenter ' +
