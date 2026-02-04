@@ -47,7 +47,7 @@ async function loadTabStories(tabType) {
 				<div class="no-stories">
 					<h3>No stories found</h3>
 					<p>Be the first to publish a story!</p>
-					<a href="pages/editor.html" class="btn btn-primary">Write a Story</a>
+					<a href="editor.html" class="btn btn-primary">Write a Story</a>
 				</div>
 			`;
 			return;
@@ -144,7 +144,7 @@ function createStoryCard(story, tabType) {
 
 	// Add click handler to open story
 	card.addEventListener('click', () => {
-		window.location.href = `pages/story.html?id=${story.id}`;
+		window.location.href = `story.html?id=${story.id}`;
 	});
 
 	// Add card to column wrapper

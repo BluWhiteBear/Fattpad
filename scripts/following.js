@@ -125,7 +125,7 @@ function createUserCard(user) {
     const card = document.createElement('div');
     card.className = 'user-card d-flex align-items-center p-3 bg-primary rounded-3';
     
-    const profilePicUrl = user.photoURL || '../img/pfp-default.png';
+    const profilePicUrl = user.photoURL || 'img/pfp-default.png';
     const isOwnProfile = currentUser && currentUser.uid === user.id;
     
     card.innerHTML = `

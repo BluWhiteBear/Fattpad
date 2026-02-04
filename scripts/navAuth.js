@@ -123,12 +123,7 @@ function toggleProfileDropdown(user) {
         return;
     }
     
-    // Determine correct paths based on current location
-    const currentPath = window.location.pathname;
-    const isInPagesDirectory = currentPath.includes('/pages/');
-    const pagesPath = isInPagesDirectory ? '' : 'pages/';
-    
-    // Create dropdown
+    // Create dropdown - all pages now in root directory
     const dropdown = document.createElement('div');
     dropdown.className = 'profile-dropdown';
     dropdown.innerHTML = `
@@ -140,10 +135,10 @@ function toggleProfileDropdown(user) {
             </div>
         </div>
         <hr class="dropdown-divider">
-        <button class="dropdown-item" onclick="window.location.href='${pagesPath}profile.html'">
+        <button class="dropdown-item" onclick="window.location.href='profile.html'">
             <i class="fas fa-user"></i> Profile
         </button>
-        <button class="dropdown-item" onclick="window.location.href='${pagesPath}settings.html'">
+        <button class="dropdown-item" onclick="window.location.href='settings.html'">
             <i class="fas fa-cog"></i> Settings
         </button>
         <button class="dropdown-item logout-btn" onclick="logout()">

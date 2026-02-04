@@ -1,23 +1,11 @@
 // Automatically load navbar component into pages
 document.addEventListener("DOMContentLoaded", function() {
     
-    // Simplified path detection for both local and GitHub Pages
+    // Simplified path detection - all pages now in root directory
     const currentPath = window.location.pathname;
-    const isInPagesDirectory = currentPath.includes('/pages/');
     
     // Define path prefixes for different types of links
-    let rootPath = '';        // For going to index.html and assets
-    let pagesPath = '';       // For going to pages
-    
-    if (isInPagesDirectory) {
-        // If we're in a pages subdirectory
-        rootPath = '../';     // Go up to access index.html and assets
-        pagesPath = '';       // Stay in current directory for other pages
-    } else {
-        // If we're in the root
-        rootPath = '';        // Stay in current directory for index.html and assets  
-        pagesPath = 'pages/'; // Go down into pages directory
-    }
+    let rootPath = '';        // For going to index.html and assets - all in root now
     
     const navbarHTML = `
 <nav class="navbar">
@@ -38,13 +26,13 @@ document.addEventListener("DOMContentLoaded", function() {
 	<!-- Desktop navigation links -->
 	<ul class="navbar-links">
 		<li><a href="${rootPath}index.html">home</a></li>
-		<li><a href="${pagesPath}editor.html">write</a></li>
+		<li><a href="editor.html">write</a></li>
 		<li><a href="#library">library</a></li>
 	</ul>
 	
 	<!-- Desktop actions -->
 	<div class="navbar-actions">
-		<button class="navbar-btn" onclick="window.location.href='${pagesPath}login.html'">log in</button>
+		<button class="navbar-btn" onclick="window.location.href='login.html'">log in</button>
 		<button class="notifications-btn" style="display: none;" title="Notifications">
 			<i class="fas fa-bell"></i>
 			<span class="notification-badge" style="display: none;"></span>
@@ -58,10 +46,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	<div class="mobile-nav-dropdown" id="mobileNavDropdown">
 		<div class="mobile-nav-content">
 			<a href="${rootPath}index.html" class="mobile-nav-item">home</a>
-			<a href="${pagesPath}editor.html" class="mobile-nav-item">write</a>
+			<a href="editor.html" class="mobile-nav-item">write</a>
 			<a href="#library" class="mobile-nav-item">library</a>
 			<div class="mobile-nav-divider"></div>
-			<button class="mobile-nav-btn" onclick="window.location.href='${pagesPath}login.html'">log in</button>
+			<button class="mobile-nav-btn" onclick="window.location.href='login.html'">log in</button>
 			<button class="mobile-profile-btn" style="display: none;">
 				<img alt="profile" class="mobile-profile-img">
 				<span>profile</span>
@@ -75,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="footer-main">
         <ul class="footer-links">
             <li><a href="${rootPath}index.html">home</a></li>
-            <li><a href="${pagesPath}editor.html">write</a></li>
+            <li><a href="editor.html">write</a></li>
             <li><a href="#library">library</a></li>
             <li class="footer-logout" style="display: none;"><a href="#" onclick="logout(); return false;">logout</a></li>
         </ul>

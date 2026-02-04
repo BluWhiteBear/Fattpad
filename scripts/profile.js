@@ -72,7 +72,7 @@ function setupEventListeners() {
     // New work button
     const newWorkBtn = document.querySelector('.btn.btn-danger');
     if (newWorkBtn) newWorkBtn.addEventListener('click', () => {
-        window.location.href = '../pages/editor.html';
+        window.location.href = 'editor.html';
     });
     
     // Edit avatar button
@@ -190,10 +190,10 @@ function displayUserProfile(isOwnProfile = true) {
     const profilePicture = document.getElementById('profile-picture');
     if (isOwnProfile) {
         // For own profile, check both profile and auth photoURL
-        profilePicture.src = currentUserProfile.photoURL || currentUser.photoURL || '../img/pfp-default.png';
+        profilePicture.src = currentUserProfile.photoURL || currentUser.photoURL || 'img/pfp-default.png';
     } else {
         // For other users' profiles, only check their profile photoURL
-        profilePicture.src = currentUserProfile.photoURL || '../img/pfp-default.png';
+        profilePicture.src = currentUserProfile.photoURL || 'img/pfp-default.png';
     }
     profilePicture.alt = currentUserProfile.displayName;
     
@@ -377,7 +377,7 @@ async function loadUserWorks(userId = null, isOwnProfile = true) {
                         <i class="fas fa-pen-nib text-muted display-1 mb-3"></i>
                         <h3 class="text-light mb-3">No works yet</h3>
                         <p class="text-muted mb-4">Start writing your first story!</p>
-                        <button class="btn btn-danger" onclick="window.location.href='../pages/editor.html'">Create New Work</button>
+                        <button class="btn btn-danger" onclick="window.location.href='editor.html'">Create New Work</button>
                     </div>
                 `;
             }
@@ -578,7 +578,7 @@ function editAvatar() {
  * Global functions for work actions
  */
 window.editWork = function(storyId) {
-    window.location.href = `pages/editor.html?id=${storyId}`;
+    window.location.href = `editor.html?id=${storyId}`;
 };
 
 window.viewWork = function(storyId) {
