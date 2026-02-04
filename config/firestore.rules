@@ -32,15 +32,11 @@ service cloud.firestore {
     }
     
     match /notifications/{notificationId} {
-      // Allow authenticated users to create notifications for others
-      allow create: if request.auth != null;
-      // Allow users to read their own notifications
-      allow read: if request.auth != null && 
-                 request.auth.uid == resource.data.userId;
+      // Allow authenticated users to create and read notifications
+      allow create, read: if request.auth != null;
       // Allow users to update their own notifications (mark as read)
       allow update: if request.auth != null && 
-                   request.auth.uid == resource.data.userId &&
-                   onlyUpdatingReadStatus(request.resource.data, resource.data);
+                   request.auth.uid == resource.data.userId;
     }
     
     // Catch-all for debugging

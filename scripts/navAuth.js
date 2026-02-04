@@ -1,11 +1,13 @@
 // Firebase Auth navbar management
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, collection, query, where, orderBy, limit, getDocs, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { firebaseConfig } from '../config/firebase-config-public.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 // Navbar authentication state management
 document.addEventListener('DOMContentLoaded', function() {
@@ -179,7 +181,7 @@ function closeDropdownOutside(e) {
     }
 }
 
-function toggleNotificationsDropdown() {
+async function toggleNotificationsDropdown() {
     // Remove existing dropdown if any
     const existingDropdown = document.querySelector('.notifications-dropdown');
     if (existingDropdown) {
@@ -187,31 +189,23 @@ function toggleNotificationsDropdown() {
         return;
     }
 
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
     // Create notifications dropdown
     const dropdown = document.createElement('div');
     dropdown.className = 'notifications-dropdown';
     dropdown.innerHTML = `
         <div class="notifications-dropdown-header">
             <h4>Notifications</h4>
-            <button class="mark-all-read" style="display: none;">Mark all read</button>
+            <button class="mark-all-read" style="display: none;" onclick="markAllNotificationsRead()">Mark all read</button>
         </div>
         <div class="notifications-list">
-            <div class="notification-item sample">
-                <div class="notification-content">
-                    <div class="notification-text">Welcome to Fattpad! Start exploring stories or create your own.</div>
-                    <div class="notification-time">Just now</div>
+            <div class="loading-notifications text-center py-3">
+                <div class="spinner-border spinner-border-sm text-danger" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-                <div class="notification-badge unread"></div>
-            </div>
-            <div class="notification-item sample">
-                <div class="notification-content">
-                    <div class="notification-text">Your story publishing feature is ready to use!</div>
-                    <div class="notification-time">2 hours ago</div>
-                </div>
-            </div>
-            <div class="notification-empty" style="display: none;">
-                <i class="fas fa-bell-slash"></i>
-                <p>No new notifications</p>
+                <p class="text-muted mt-2 mb-0">Loading notifications...</p>
             </div>
         </div>
         <div class="notifications-footer">
@@ -228,8 +222,148 @@ function toggleNotificationsDropdown() {
 
     document.body.appendChild(dropdown);
 
+    // Load real notifications
+    await loadUserNotifications(dropdown, currentUser.uid);
+
     // Close dropdown when clicking outside
     setTimeout(() => {
         document.addEventListener('click', closeDropdownOutside);
     }, 0);
 }
+
+async function loadUserNotifications(dropdown, userId) {
+    try {
+        const notificationsRef = collection(db, 'notifications');
+        const notificationsQuery = query(
+            notificationsRef,
+            where('userId', '==', userId),
+            orderBy('createdAt', 'desc'),
+            limit(10)
+        );
+
+        const notificationsSnapshot = await getDocs(notificationsQuery);
+        const notificationsList = dropdown.querySelector('.notifications-list');
+        
+        // Clear loading state
+        notificationsList.innerHTML = '';
+
+        if (notificationsSnapshot.empty) {
+            notificationsList.innerHTML = `
+                <div class="notification-empty text-center py-4">
+                    <i class="fas fa-bell-slash fa-2x text-muted mb-3" style="opacity: 0.5;"></i>
+                    <h6 class="text-muted">No notifications yet</h6>
+                    <p class="text-muted mb-0 small">When people follow you or interact with your stories, you'll see notifications here.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let hasUnread = false;
+        notificationsSnapshot.forEach(docSnapshot => {
+            const notification = docSnapshot.data();
+            if (!notification.read) hasUnread = true;
+            
+            const notificationElement = createNotificationElement(notification);
+            notificationsList.appendChild(notificationElement);
+        });
+
+        // Show mark all read button if there are unread notifications
+        const markAllReadBtn = dropdown.querySelector('.mark-all-read');
+        if (hasUnread) {
+            markAllReadBtn.style.display = 'block';
+        }
+
+    } catch (error) {
+        console.error('❌ Error loading notifications:', error);
+        const notificationsList = dropdown.querySelector('.notifications-list');
+        notificationsList.innerHTML = `
+            <div class="notification-error text-center py-3">
+                <i class="fas fa-exclamation-triangle text-warning mb-2"></i>
+                <p class="text-muted mb-0">Failed to load notifications</p>
+            </div>
+        `;
+    }
+}
+
+function createNotificationElement(notification) {
+    const notificationDiv = document.createElement('div');
+    notificationDiv.className = `notification-item ${!notification.read ? 'unread' : ''}`;
+    
+    let notificationText = '';
+    let timeAgo = '';
+    
+    if (notification.createdAt && notification.createdAt.toDate) {
+        timeAgo = getTimeAgo(notification.createdAt.toDate());
+    } else {
+        timeAgo = 'Recently';
+    }
+    
+    switch (notification.type) {
+        case 'follow':
+            notificationText = `${notification.data.followerName} started following you`;
+            break;
+        case 'like':
+            notificationText = `${notification.data.likerName} liked your story "${notification.data.storyTitle}"`;
+            break;
+        case 'comment':
+            notificationText = `${notification.data.commenterName} commented on "${notification.data.storyTitle}"`;
+            break;
+        default:
+            notificationText = 'New notification';
+    }
+    
+    notificationDiv.innerHTML = `
+        <div class="notification-content">
+            <div class="notification-text">${notificationText}</div>
+            <div class="notification-time">${timeAgo}</div>
+        </div>
+        ${!notification.read ? '<div class="notification-badge unread"></div>' : ''}
+    `;
+    
+    return notificationDiv;
+}
+
+function getTimeAgo(date) {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return date.toLocaleDateString();
+}
+
+async function markAllNotificationsRead() {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    
+    try {
+        const notificationsRef = collection(db, 'notifications');
+        const unreadQuery = query(
+            notificationsRef,
+            where('userId', '==', currentUser.uid),
+            where('read', '==', false)
+        );
+        
+        const unreadSnapshot = await getDocs(unreadQuery);
+        const updatePromises = unreadSnapshot.docs.map(docSnapshot => 
+            updateDoc(doc(db, 'notifications', docSnapshot.id), { read: true })
+        );
+        
+        await Promise.all(updatePromises);
+        
+        // Refresh the dropdown
+        const dropdown = document.querySelector('.notifications-dropdown');
+        if (dropdown) {
+            dropdown.remove();
+            toggleNotificationsDropdown();
+        }
+        
+    } catch (error) {
+        console.error('❌ Error marking notifications as read:', error);
+    }
+}
+
+// Make function available globally
+window.markAllNotificationsRead = markAllNotificationsRead;
