@@ -729,24 +729,9 @@ async function publishStory() {
     } else if (publishChoice === 'local') {
         return await publishLocally();
     } else if (publishChoice === 'setup') {
-        // Show Firebase setup instructions
-        const openGuide = confirm(
-            'Firebase setup required for online publishing.\n\n' +
-            'Setup includes:\n' +
-            '• Creating a Firebase project (free)\n' +
-            '• Configuring authentication\n' +
-            '• Setting up database\n\n' +
-            'This takes about 5-10 minutes.\n\n' +
-            'Click OK to open the setup guide, or Cancel to publish locally instead.'
-        );
-        
-        if (openGuide) {
-            // Open setup guide in new tab
-            window.open('FIREBASE_SETUP.md', '_blank');
-            showNotificationMessage('Setup guide opened in new tab. Follow the steps then try publishing again!', 'info');
-        } else {
-            return await publishLocally();
-        }
+        // Open setup guide directly since user chose this option
+        window.open('FIREBASE_SETUP.md', '_blank');
+        showNotificationMessage('Setup guide opened in new tab. Follow the steps then try publishing again!', 'info');
         return;
     } else if (publishChoice === 'online') {
         // Firebase is ready, proceed with online publishing
@@ -952,10 +937,6 @@ async function publishToFirebase() {
         return;
     }
     
-    if (!confirm('Are you sure you want to publish this story online? It will be visible to all users.')) {
-        return;
-    }
-    
     const storyId = generateStoryId();
     
     console.log('📝 Publishing story to Firebase...');
@@ -1007,17 +988,9 @@ async function publishToFirebase() {
         // Also save locally as backup
         await publishLocally();
         
-        // Show success message with next steps
+        // Show success notification
         setTimeout(() => {
-            const viewOnline = confirm(
-                `🎉 "${title}" is now published online!\n\n` +
-                'Your story is live and discoverable by other readers.\n\n' +
-                'Would you like to go to the home page to see your published story?'
-            );
-            
-            if (viewOnline) {
-                window.location.href = 'index.html';
-            }
+            showNotificationMessage(`🎉 "${title}" is now published online and discoverable by readers!`, 'success');
         }, 1000);
         
     } catch (error) {
