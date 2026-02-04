@@ -65,6 +65,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <li><a href="${rootPath}index.html">home</a></li>
             <li><a href="editor.html">write</a></li>
             <li><a href="#library">library</a></li>
+            <li><a href="tos.html">terms of service</a></li>
             <li class="footer-logout" style="display: none;"><a href="#" onclick="logout(); return false;">logout</a></li>
         </ul>
     </div>

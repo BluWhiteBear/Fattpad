@@ -11,11 +11,34 @@ const db = getFirestore(app);
 
 // Navbar authentication state management
 document.addEventListener('DOMContentLoaded', function() {
-    // Wait a bit for navbar to be populated by popComponents.js
-    setTimeout(() => {
-        setupAuthListener();
-    }, 100);
+    // Wait for navbar to be populated by popComponents.js with retry mechanism
+    setupAuthListenerWithRetry();
 });
+
+function setupAuthListenerWithRetry() {
+    const maxRetries = 10;
+    let retryCount = 0;
+    
+    function trySetup() {
+        const notificationsBtn = document.querySelector('.notifications-btn');
+        const profileBtn = document.querySelector('.profile-btn');
+        
+        if (notificationsBtn && profileBtn) {
+            // Elements found, set up the auth listener
+            setupAuthListener();
+        } else if (retryCount < maxRetries) {
+            // Elements not found yet, retry in 50ms
+            retryCount++;
+            setTimeout(trySetup, 50);
+        } else {
+            // Max retries reached, set up anyway (fallback)
+            console.warn('Navigation elements not found after retries, setting up auth anyway');
+            setupAuthListener();
+        }
+    }
+    
+    trySetup();
+}
 
 function setupAuthListener() {
     onAuthStateChanged(auth, (user) => {
@@ -46,12 +69,19 @@ function updateNavbarAuth(user = null) {
         notificationsBtn: !!notificationsBtn
     });
     
-    if (user && loginBtn && profileBtn) {
+    if (user && profileBtn) {
         // User is logged in - hide login button, show profile and notifications
-        loginBtn.style.display = 'none';
+        if (loginBtn) {
+            loginBtn.style.display = 'none';
+        }
         profileBtn.style.display = 'flex';
+        
+        // Always try to show notifications button if it exists
         if (notificationsBtn) {
             notificationsBtn.style.display = 'flex';
+            console.log('Notifications button made visible');
+        } else {
+            console.warn('Notifications button not found in DOM');
         }
         
         // Show footer logout
