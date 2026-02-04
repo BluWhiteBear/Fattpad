@@ -38,7 +38,6 @@ document.addEventListener("DOMContentLoaded", function() {
 	<!-- Desktop navigation links -->
 	<ul class="navbar-links">
 		<li><a href="${rootPath}index.html">home</a></li>
-		<li><a href="#explore">explore</a></li>
 		<li><a href="${pagesPath}editor.html">write</a></li>
 		<li><a href="#library">library</a></li>
 	</ul>
@@ -59,7 +58,6 @@ document.addEventListener("DOMContentLoaded", function() {
 	<div class="mobile-nav-dropdown" id="mobileNavDropdown">
 		<div class="mobile-nav-content">
 			<a href="${rootPath}index.html" class="mobile-nav-item">home</a>
-			<a href="#explore" class="mobile-nav-item">explore</a>
 			<a href="${pagesPath}editor.html" class="mobile-nav-item">write</a>
 			<a href="#library" class="mobile-nav-item">library</a>
 			<div class="mobile-nav-divider"></div>
@@ -77,10 +75,8 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="footer-main">
         <ul class="footer-links">
             <li><a href="${rootPath}index.html">home</a></li>
-            <li><a href="#explore">explore</a></li>
             <li><a href="${pagesPath}editor.html">write</a></li>
             <li><a href="#library">library</a></li>
-            <li><a href="${pagesPath}profile.html">profile</a></li>
             <li class="footer-logout" style="display: none;"><a href="#" onclick="logout(); return false;">logout</a></li>
         </ul>
     </div>
