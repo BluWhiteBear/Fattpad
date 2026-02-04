@@ -1,5 +1,30 @@
 /* Bootstrap Theme Overrides for Profile Page */
 
+/* Force ALL text elements to use our theme colors */
+.container-xl * {
+    color: var(--text-primary);
+}
+
+.container-xl .text-muted,
+.container-xl .card-text,
+.container-xl small,
+.container-xl p:not(.card-title):not(.h1):not(.h2):not(.h3):not(.h4):not(.h5) {
+    color: var(--text-secondary) !important;
+}
+
+/* Override Bootstrap text colors to use our theme */
+.text-light {
+    color: var(--text-primary) !important;
+}
+
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+.small.text-muted {
+    color: var(--text-secondary) !important;
+}
+
 /* Override Bootstrap's bg-secondary to use our custom color */
 .bg-secondary {
     background-color: var(--bg-secondary) !important;
@@ -54,6 +79,55 @@
 #works .badge.bg-secondary {
     background-color: var(--text-secondary) !important;
     color: var(--bg-primary) !important;
+}
+
+/* Profile page specific text overrides */
+.profile-container .text-light,
+.profile-container h1,
+.profile-container h2,
+.profile-container h3,
+.profile-container h4,
+.profile-container h5,
+.profile-container .card-title {
+    color: var(--text-primary) !important;
+}
+
+.profile-container .text-muted,
+.profile-container .card-text,
+.profile-container small {
+    color: var(--text-secondary) !important;
+}
+
+/* Tab content text styling */
+.tab-content .text-light {
+    color: var(--text-primary) !important;
+}
+
+.tab-content .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* List group items text */
+.list-group-item .text-light,
+.list-group-item h5 {
+    color: var(--text-primary) !important;
+}
+
+.list-group-item .text-muted,
+.list-group-item p,
+.list-group-item small {
+    color: var(--text-secondary) !important;
+}
+
+/* Ensure all profile stats use theme colors */
+.col-12.col-lg-auto .text-light,
+.col-12.col-lg-auto .h4 {
+    color: var(--text-primary) !important;
+}
+
+.col-12.col-lg-auto .text-muted,
+.col-12.col-lg-auto small {
+    color: var(--text-secondary) !important;
 }
 
 /* Bootstrap nav-tabs custom styling */
