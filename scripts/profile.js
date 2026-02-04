@@ -16,16 +16,39 @@ let currentUserProfile = null;
 document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     
+    // Get user ID from URL parameter if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const profileUserId = urlParams.get('userId');
+    
     // Wait for auth state
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
-            loadUserProfile(user.uid);
-            // Migrate any stories with local_user authorId
-            migrateLocalUserStories(user.uid);
+            
+            if (profileUserId) {
+                // Load specific user's profile (public view)
+                console.log('🔍 Loading profile for user:', profileUserId);
+                loadUserProfile(profileUserId, false); // false = not own profile
+                loadUserWorks(profileUserId);
+                loadUserStats(profileUserId);
+            } else {
+                // Load current user's own profile
+                console.log('👤 Loading own profile');
+                loadUserProfile(user.uid, true); // true = own profile
+                loadUserWorks(user.uid);
+                loadUserStats(user.uid);
+                // Migrate any stories with local_user authorId
+                migrateLocalUserStories(user.uid);
+            }
         } else {
-            // Redirect to login if not authenticated
-            window.location.href = 'login.html';
+            if (profileUserId) {
+                // Anonymous viewing of profile - redirect to login
+                alert('Please log in to view profiles');
+                window.location.href = 'login.html';
+            } else {
+                // Redirect to login if not authenticated
+                window.location.href = 'login.html';
+            }
         }
     });
 });
@@ -65,18 +88,35 @@ function switchTab(tabName) {
     // Bootstrap handles tab switching automatically with data-bs-toggle
     // Custom logic can be added here if needed
     
+    // Get URL parameters to maintain context
+    const urlParams = new URLSearchParams(window.location.search);
+    const profileUserId = urlParams.get('userId');
+    const isOwnProfile = !profileUserId || profileUserId === currentUser.uid;
+    
     // Load tab-specific data
     if (tabName === 'works') {
-        loadUserWorks();
+        loadUserWorks(profileUserId || currentUser.uid, isOwnProfile);
     }
+}
+
+/**
+ * Helper function to get current profile context
+ */
+function getCurrentProfileContext() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const profileUserId = urlParams.get('userId');
+    return {
+        userId: profileUserId || currentUser.uid,
+        isOwnProfile: !profileUserId || (currentUser && profileUserId === currentUser.uid)
+    };
 }
 
 /**
  * Load user profile from Firestore
  */
-async function loadUserProfile(userId) {
+async function loadUserProfile(userId, isOwnProfile = true) {
     try {
-        console.log('📱 Loading profile for user:', userId);
+        console.log('📱 Loading profile for user:', userId, 'isOwnProfile:', isOwnProfile);
         
         const userDocRef = doc(db, 'users', userId);
         const userDoc = await getDoc(userDocRef);
@@ -84,15 +124,17 @@ async function loadUserProfile(userId) {
         if (userDoc.exists()) {
             currentUserProfile = userDoc.data();
             console.log('✅ Profile loaded:', currentUserProfile);
-        } else {
-            // Create profile if it doesn't exist
+        } else if (isOwnProfile) {
+            // Create profile if it doesn't exist (only for own profile)
             console.log('📝 Creating new user profile...');
             currentUserProfile = await createUserProfile(userId);
+        } else {
+            // Profile doesn't exist and it's not the current user's profile
+            showError('Profile not found');
+            return;
         }
         
-        displayUserProfile();
-        loadUserStats();
-        loadUserWorks();
+        displayUserProfile(isOwnProfile);
         
     } catch (error) {
         console.error('❌ Error loading user profile:', error);
@@ -137,33 +179,51 @@ async function createUserProfile(userId) {
 /**
  * Display user profile information
  */
-function displayUserProfile() {
+function displayUserProfile(isOwnProfile = true) {
     if (!currentUserProfile) return;
     
     // Update profile picture
     const profilePicture = document.getElementById('profile-picture');
-    profilePicture.src = currentUserProfile.photoURL || currentUser.photoURL || '/img/default-avatar.png';
+    profilePicture.src = currentUserProfile.photoURL || currentUser.photoURL || '../img/pfp-default.png';
     profilePicture.alt = currentUserProfile.displayName;
     
     // Update profile info
     document.getElementById('profile-name').textContent = currentUserProfile.displayName;
     document.getElementById('profile-email').textContent = currentUserProfile.email;
-    document.getElementById('profile-bio').textContent = currentUserProfile.bio || 'No bio yet. Click Edit Profile to add one!';
+    document.getElementById('profile-bio').textContent = currentUserProfile.bio || (isOwnProfile ? 'No bio yet. Click Edit Profile to add one!' : 'This user hasn\'t written a bio yet.');
+    
+    // Show/hide edit controls based on whether it's the user's own profile
+    const editProfileBtn = document.querySelector('.col .btn-outline-danger');
+    const editAvatarBtn = document.querySelector('.btn.btn-danger.position-absolute');
+    const newWorkBtn = document.querySelector('.btn.btn-danger');
+    
+    if (editProfileBtn) {
+        editProfileBtn.style.display = isOwnProfile ? 'inline-block' : 'none';
+    }
+    if (editAvatarBtn) {
+        editAvatarBtn.style.display = isOwnProfile ? 'flex' : 'none';
+    }
+    if (newWorkBtn) {
+        newWorkBtn.style.display = isOwnProfile ? 'inline-block' : 'none';
+    }
     
     // Update page title
-    document.title = `${currentUserProfile.displayName} - Fattpad`;
+    const title = isOwnProfile ? 'My Profile - Fattpad' : `${currentUserProfile.displayName} - Fattpad`;
+    document.title = title;
 }
 
 /**
  * Load and display user statistics
  */
-async function loadUserStats() {
+async function loadUserStats(userId = null) {
     try {
+        const targetUserId = userId || currentUser.uid;
+        
         // Get user's published stories count and stats
         const storiesRef = collection(db, 'stories');
         const userStoriesQuery = query(
             storiesRef, 
-            where('authorId', '==', currentUser.uid),
+            where('authorId', '==', targetUserId),
             where('isPublished', '==', true)
         );
         
@@ -217,14 +277,17 @@ async function loadUserStats() {
 /**
  * Load and display user's works
  */
-async function loadUserWorks() {
+async function loadUserWorks(userId = null, isOwnProfile = true) {
     try {
-        console.log('📚 Loading user works...');
+        const targetUserId = userId || currentUser.uid;
+        console.log('📚 Loading user works for:', targetUserId, 'isOwnProfile:', isOwnProfile);
         
         const storiesRef = collection(db, 'stories');
         const userStoriesQuery = query(
             storiesRef,
-            where('authorId', '==', currentUser.uid),
+            where('authorId', '==', targetUserId),
+            // Only show published stories for other users' profiles
+            ...(isOwnProfile ? [] : [where('isPublished', '==', true)]),
             orderBy('updatedAt', 'desc')
         );
         
@@ -257,7 +320,7 @@ async function loadUserWorks() {
         
         storiesSnapshot.forEach((doc) => {
             const story = doc.data();
-            const workCard = createWorkCard(story, doc.id);
+            const workCard = createWorkCard(story, doc.id, isOwnProfile);
             if (worksGrid) {
                 worksGrid.appendChild(workCard);
             }
@@ -273,7 +336,7 @@ async function loadUserWorks() {
 /**
  * Create a work card element
  */
-function createWorkCard(story, storyId) {
+function createWorkCard(story, storyId, isOwnProfile = true) {
     const cardColumn = document.createElement('div');
     cardColumn.className = 'col-12 col-md-6 col-lg-4 mb-4';
     cardColumn.setAttribute('data-dynamic', 'true'); // Mark as dynamically created
@@ -281,12 +344,25 @@ function createWorkCard(story, storyId) {
     const status = story.isPublished ? 'Published' : 'Draft';
     const statusClass = story.isPublished ? 'bg-success' : 'bg-warning';
     
+    // Action buttons - different for own profile vs others
+    const actionButtons = isOwnProfile ? `
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-danger btn-sm" onclick="editWork('${storyId}')">Edit</button>
+            <button class="btn btn-outline-info btn-sm" onclick="viewWork('${storyId}')" ${!story.isPublished ? 'disabled' : ''}>View</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="deleteWork('${storyId}', '${story.title}')">Delete</button>
+        </div>
+    ` : `
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-info btn-sm" onclick="viewWork('${storyId}')">Read Story</button>
+        </div>
+    `;
+    
     cardColumn.innerHTML = `
         <div class="card bg-dark border-0 h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h5 class="card-title text-light">${story.title || 'Untitled'}</h5>
-                    <span class="badge ${statusClass} text-dark">${status}</span>
+                    ${isOwnProfile ? `<span class="badge ${statusClass} text-dark">${status}</span>` : ''}
                 </div>
                 <p class="card-text text-muted mb-3">${story.description || 'No description'}</p>
                 <div class="d-flex gap-3 mb-3 small text-muted">
@@ -298,11 +374,7 @@ function createWorkCard(story, storyId) {
                     <span class="badge bg-secondary">${getRatingLabel(story.contentRating)}</span>
                     <small class="text-muted">${formatDate(story.updatedAt)}</small>
                 </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-danger btn-sm" onclick="editWork('${storyId}')">Edit</button>
-                    <button class="btn btn-outline-info btn-sm" onclick="viewWork('${storyId}')" ${!story.isPublished ? 'disabled' : ''}>View</button>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="deleteWork('${storyId}', '${story.title}')">Delete</button>
-                </div>
+                ${actionButtons}
             </div>
         </div>
     `;
