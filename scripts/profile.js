@@ -78,9 +78,6 @@ function setupEventListeners() {
     // Edit avatar button
     const editAvatarBtn = document.querySelector('.btn.btn-danger.position-absolute');
     if (editAvatarBtn) editAvatarBtn.addEventListener('click', editAvatar);
-    
-    // Add event listeners for clickable stats
-    setupStatLinks();
 }
 
 /**
@@ -284,6 +281,9 @@ async function loadUserStats(userId = null) {
                 if (readsCountElement) readsCountElement.textContent = formatNumber(totalReads);
             }
         }
+        
+        // Re-setup stat links after stats are updated
+        setupStatLinks();
         
         // Update stats in profile document
         if (currentUserProfile) {
@@ -620,17 +620,32 @@ function setupStatLinks() {
     const statLinks = document.querySelectorAll('.stat-link');
     
     statLinks.forEach(link => {
+        // Remove any existing listeners to prevent duplicates
+        link.replaceWith(link.cloneNode(true));
+    });
+    
+    // Re-query after cloning
+    const newStatLinks = document.querySelectorAll('.stat-link');
+    
+    newStatLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const statType = link.getAttribute('data-stat');
             const urlParams = new URLSearchParams(window.location.search);
             const profileUserId = urlParams.get('userId') || currentUser?.uid;
             
-            if (!profileUserId) return;
+            console.log('Stat link clicked:', { statType, profileUserId, currentUser: currentUser?.uid });
+            
+            if (!profileUserId) {
+                console.error('No profileUserId found');
+                return;
+            }
             
             if (statType === 'followers') {
+                console.log('Navigating to followers page');
                 window.location.href = `followers.html?userId=${profileUserId}`;
             } else if (statType === 'following') {
+                console.log('Navigating to following page');
                 window.location.href = `following.html?userId=${profileUserId}`;
             }
         });
