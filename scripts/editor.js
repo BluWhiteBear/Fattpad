@@ -813,7 +813,7 @@ async function showPublishDialog() {
                         z-index: 10002;
                         position: relative;
                     " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)'" 
-                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">📱 Publish Locally</button>
+                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">Save Draft</button>
                     
                     <button type="button" data-action="${isOnlinePublishingReady ? 'online' : 'setup'}" style="
                         background: ${isOnlinePublishingReady ? 'var(--accent-color)' : '#666'};
@@ -830,7 +830,7 @@ async function showPublishDialog() {
                         position: relative;
                         ${!isOnlinePublishingReady ? 'opacity: 0.6;' : ''}
                     " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)'" 
-                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">${isOnlinePublishingReady ? '🌐 Publish Online' : '⚙️ Setup Firebase'}</button>
+                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">${isOnlinePublishingReady ? 'Publish' : 'ERROR'}</button>
                     
                     <button type="button" data-action="cancel" style="
                         background: transparent;
