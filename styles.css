@@ -16,7 +16,7 @@ html {
 
 body {
     min-height: 100vh;
-    font-family: 'Atkinson Hyperlegible', 'Segoe UI', Arial, sans-serif;
+    font-family: 'Atkinson Hyperlegible', sans-serif;
     background: var(--bg-primary);
     margin: 0;
     color: var(--text-primary);
