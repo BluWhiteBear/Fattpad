@@ -192,7 +192,7 @@ async function displayStory(story) {
     const likeCount = story.likes || 0;
     const likeCountDisplay = document.getElementById('like-count-display');
     if (likeCountDisplay) {
-        likeCountDisplay.innerHTML = `<i class="fas fa-heart"></i> ${likeCount} Likes`;
+        likeCountDisplay.innerHTML = `<i class="fas fa-heart"></i> ${likeCount} Bites`;
     }
     
     // Create tags
