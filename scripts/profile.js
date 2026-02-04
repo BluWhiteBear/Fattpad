@@ -315,6 +315,7 @@ async function loadUserWorks(userId = null, isOwnProfile = true) {
         const targetUserId = userId || currentUser.uid;
         console.log('📚 Loading user works for:', targetUserId, 'isOwnProfile:', isOwnProfile);
         
+        // Load published/unpublished stories from Firebase
         const storiesRef = collection(db, 'stories');
         const userStoriesQuery = query(
             storiesRef,
@@ -336,8 +337,40 @@ async function loadUserWorks(userId = null, isOwnProfile = true) {
         if (worksGrid) {
             worksGrid.innerHTML = '';
         }
+
+        // Collect all works (Firebase + local drafts for own profile)
+        const allWorks = [];
         
-        if (storiesSnapshot.empty) {
+        // Add Firebase stories
+        storiesSnapshot.forEach((doc) => {
+            const story = doc.data();
+            allWorks.push({
+                id: doc.id,
+                data: story,
+                source: 'firebase'
+            });
+        });
+        
+        // Add local drafts if viewing own profile
+        if (isOwnProfile && currentUser) {
+            const localDrafts = loadLocalDrafts();
+            localDrafts.forEach(draft => {
+                allWorks.push({
+                    id: draft.id,
+                    data: draft,
+                    source: 'local'
+                });
+            });
+        }
+        
+        // Sort all works by updated date (most recent first)
+        allWorks.sort((a, b) => {
+            const dateA = a.data.updatedAt?.toDate?.() || new Date(a.data.updatedAt || 0);
+            const dateB = b.data.updatedAt?.toDate?.() || new Date(b.data.updatedAt || 0);
+            return dateB - dateA;
+        });
+        
+        if (allWorks.length === 0) {
             if (worksGrid) {
                 worksGrid.innerHTML = `
                     <div class="col-12 text-center py-5">
@@ -350,16 +383,16 @@ async function loadUserWorks(userId = null, isOwnProfile = true) {
             }
             return;
         }
-        
-        storiesSnapshot.forEach((doc) => {
-            const story = doc.data();
-            const workCard = createWorkCard(story, doc.id, isOwnProfile);
+
+        // Create work cards
+        allWorks.forEach(work => {
+            const workCard = createWorkCard(work.data, work.id, isOwnProfile, work.source);
             if (worksGrid) {
                 worksGrid.appendChild(workCard);
             }
         });
         
-        console.log(`✅ Loaded ${storiesSnapshot.size} works`);
+        console.log(`✅ Loaded ${allWorks.length} works (${storiesSnapshot.size} Firebase + ${allWorks.length - storiesSnapshot.size} local)`);
         
     } catch (error) {
         console.error('❌ Error loading user works:', error);
@@ -367,22 +400,45 @@ async function loadUserWorks(userId = null, isOwnProfile = true) {
 }
 
 /**
+ * Load local drafts from localStorage
+ */
+function loadLocalDrafts() {
+    try {
+        const localStories = JSON.parse(localStorage.getItem('fattpad_stories') || '[]');
+        return localStories.filter(story => story && story.title); // Only include stories with titles
+    } catch (error) {
+        console.error('❌ Error loading local drafts:', error);
+        return [];
+    }
+}
+
+/**
  * Create a work card element
  */
-function createWorkCard(story, storyId, isOwnProfile = true) {
+function createWorkCard(story, storyId, isOwnProfile = true, source = 'firebase') {
     const cardColumn = document.createElement('div');
     cardColumn.className = 'col-12 col-md-6 col-lg-4 mb-4';
     cardColumn.setAttribute('data-dynamic', 'true'); // Mark as dynamically created
     
-    const status = story.isPublished ? 'Published' : 'Draft';
-    const statusClass = story.isPublished ? 'bg-success' : 'bg-warning';
+    // Determine status and styling based on source and published state
+    let status, statusClass, viewFunction;
+    
+    if (source === 'local') {
+        status = 'Local Draft';
+        statusClass = 'bg-info';
+        viewFunction = `viewLocalWork('${storyId}')`;
+    } else {
+        status = story.isPublished ? 'Published' : 'Draft';
+        statusClass = story.isPublished ? 'bg-success' : 'bg-warning';
+        viewFunction = `viewWork('${storyId}')`;
+    }
     
     // Action buttons - different for own profile vs others
     const actionButtons = isOwnProfile ? `
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-danger btn-sm" onclick="editWork('${storyId}')">Edit</button>
-            <button class="btn btn-outline-info btn-sm" onclick="viewWork('${storyId}')" ${!story.isPublished ? 'disabled' : ''}>View</button>
-            <button class="btn btn-outline-secondary btn-sm" onclick="deleteWork('${storyId}', '${story.title}')">Delete</button>
+            <button class="btn btn-outline-danger btn-sm" onclick="${source === 'local' ? `editLocalWork('${storyId}')` : `editWork('${storyId}')`}">Edit</button>
+            <button class="btn btn-outline-info btn-sm" onclick="${viewFunction}" ${(!story.isPublished && source !== 'local') ? 'disabled' : ''}>View</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="${source === 'local' ? `deleteLocalWork('${storyId}', '${story.title}')` : `deleteWork('${storyId}', '${story.title}')`}">Delete</button>
         </div>
     ` : `
         <div class="d-flex gap-2">
@@ -391,7 +447,7 @@ function createWorkCard(story, storyId, isOwnProfile = true) {
     `;
     
     cardColumn.innerHTML = `
-        <div class="card bg-dark border-0 h-100">
+        <div class="card bg-dark border-0 h-100 ${source === 'local' ? 'border-info' : ''}" style="${source === 'local' ? 'border: 1px solid #17a2b8 !important;' : ''}">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h5 class="card-title text-light">${story.title || 'Untitled'}</h5>
@@ -804,3 +860,43 @@ async function toggleFollow(targetUserId) {
         showError('Failed to update follow status. Please try again.');
     }
 }
+
+/**
+ * Local work management functions
+ */
+function viewLocalWork(storyId) {
+    window.location.href = `story.html?id=${storyId}`;
+}
+
+function editLocalWork(storyId) {
+    window.location.href = `editor.html?id=${storyId}`;
+}
+
+function deleteLocalWork(storyId, storyTitle) {
+    if (confirm(`Are you sure you want to delete "${storyTitle}"? This action cannot be undone.`)) {
+        try {
+            const stories = JSON.parse(localStorage.getItem('fattpad_stories') || '[]');
+            const updatedStories = stories.filter(story => story.id !== storyId);
+            localStorage.setItem('fattpad_stories', JSON.stringify(updatedStories));
+            
+            // Refresh the works display
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileUserId = urlParams.get('userId');
+            const isOwnProfile = !profileUserId || (currentUser && profileUserId === currentUser.uid);
+            
+            if (isOwnProfile) {
+                loadUserWorks(currentUser?.uid, true);
+            }
+            
+            console.log(`✅ Deleted local story: ${storyTitle}`);
+        } catch (error) {
+            console.error('❌ Error deleting local story:', error);
+            alert('Failed to delete story. Please try again.');
+        }
+    }
+}
+
+// Make functions available globally
+window.viewLocalWork = viewLocalWork;
+window.editLocalWork = editLocalWork;
+window.deleteLocalWork = deleteLocalWork;
