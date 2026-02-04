@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting... - Fattpad</title>
+    <script>
+        // GitHub Pages clean URL handler
+        const path = window.location.pathname.replace(/\/$/, '');
+        const segments = path.split('/').slice(1);
+        
+        // Handle clean URLs by redirecting to .html files
+        if (segments.length > 0 && !path.includes('.')) {
+            const cleanPath = segments[segments.length - 1];
+            const possiblePages = [
+                'tos', 'editor', 'login', 'register', 'profile', 'settings', 
+                'story', 'story-local', 'search'
+            ];
+            
+            if (possiblePages.includes(cleanPath)) {
+                window.location.replace('/' + cleanPath + '.html');
+            } else {
+                // Default to home page for unknown routes
+                window.location.replace('/');
+            }
+        } else {
+            // Default to home page
+            window.location.replace('/');
+        }
+    </script>
+</head>
+<body>
+    <style>
+        body {
+            font-family: 'Atkinson Hyperlegible', sans-serif;
+            background: #191919;
+            color: #E8E8E8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .loading {
+            text-align: center;
+        }
+    </style>
+    <div class="loading">
+        <h2>Redirecting...</h2>
+        <p>If you're not redirected automatically, <a href="/" style="color: #E97775;">click here to go home</a>.</p>
+    </div>
+</body>
+</html>
