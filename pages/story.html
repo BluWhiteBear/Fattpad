@@ -17,6 +17,17 @@
     <!-- Main Content -->
     <main class="story-page">
         <div class="story-container" id="story-container">
+            <!-- Local Draft Banner -->
+            <div class="local-draft-banner" id="local-draft-banner" style="display: none;">
+                <div class="banner-content">
+                    <i class="fas fa-edit"></i>
+                    <span>This is a local draft - only visible on this device</span>
+                    <button class="btn btn-sm btn-outline-light" onclick="window.location.href='../pages/editor.html'">
+                        <i class="fas fa-pen"></i> Edit Draft
+                    </button>
+                </div>
+            </div>
+            
             <!-- Loading state -->
             <div class="loading-spinner" id="loading">
                 <i class="fas fa-spinner fa-spin"></i>

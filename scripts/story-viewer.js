@@ -132,6 +132,16 @@ async function displayStory(story) {
     loadingEl.style.display = 'none';
     storyDisplayEl.style.display = 'block';
     
+    // Show local draft banner if story is from localStorage
+    const localDraftBanner = document.getElementById('local-draft-banner');
+    if (localDraftBanner) {
+        if (story.source === 'local') {
+            localDraftBanner.style.display = 'block';
+        } else {
+            localDraftBanner.style.display = 'none';
+        }
+    }
+    
     // Set title
     storyTitleEl.textContent = story.title || 'Untitled Story';
     document.title = `${story.title || 'Untitled Story'} - Fattpad`;

@@ -11,6 +11,54 @@
     padding: 20px;
 }
 
+/* Local Draft Banner */
+.local-draft-banner {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    margin: -20px -20px 20px -20px;
+    padding: 15px 20px;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: space-between;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.banner-content i {
+    font-size: 1.1rem;
+}
+
+.banner-content span {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.banner-content .btn {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border: 1px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.banner-content .btn:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.8);
+    color: white;
+    transform: translateY(-1px);
+}
+
 /* Main Story Display */
 #story-display {
     max-width: 900px;
