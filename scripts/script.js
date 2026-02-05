@@ -101,7 +101,7 @@ function createStoryCard(story, tabType) {
 			metadata = `${(story.views || 0).toLocaleString()} reads`;
 			break;
 		case 'top':
-			metadata = `❤️ ${(story.likes || 0).toLocaleString()}`;
+			metadata = `<img src="img/bite_1.svg" alt="Bites" class="bite-icon-secondary" style="width: 14px; height: 14px; vertical-align: text-bottom;"> ${(story.likes || 0).toLocaleString()}`;
 			break;
 		case 'new':
 		default:
