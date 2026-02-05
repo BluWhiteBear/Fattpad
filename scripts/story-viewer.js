@@ -198,13 +198,6 @@ async function displayStory(story) {
     const viewCount = story.views || 0;
     viewCountEl.innerHTML = `<i class="fas fa-eye"></i> ${viewCount.toLocaleString()} Views`;
     
-    // Set like count display
-    const likeCount = story.likes || 0;
-    const likeCountDisplay = document.getElementById('like-count-display');
-    if (likeCountDisplay) {
-        likeCountDisplay.innerHTML = `<img src="img/bite_1.svg" alt="Bite" class="bite-icon" style="width: 18px; height: 18px; vertical-align: text-bottom;"> ${likeCount} Bites`;
-    }
-    
     // Create tags
     const tagsContainer = document.getElementById('story-tags');
     if (tagsContainer) {
@@ -387,17 +380,25 @@ function updateLikeButton(likeCount, isLiked = null) {
         isLiked = likedStories.includes(currentStoryId);
     }
     
-    likeCountEl.textContent = likeCount.toLocaleString();
+    const likeCountElement = document.getElementById('like-count');
+    if (likeCountElement) {
+        likeCountElement.textContent = likeCount.toLocaleString();
+    }
+    
     const likeIcon = document.getElementById('like-icon');
     
     if (isLiked) {
-        likeBtnEl.classList.add('liked');
-        likeIcon.src = 'img/bite_2.svg';
-        likeIcon.alt = 'Bitten';
+        if (likeBtnEl) likeBtnEl.classList.add('liked');
+        if (likeIcon) {
+            likeIcon.src = 'img/bite_2.svg';
+            likeIcon.alt = 'Bitten';
+        }
     } else {
-        likeBtnEl.classList.remove('liked');
-        likeIcon.src = 'img/bite_1.svg';
-        likeIcon.alt = 'Bite';
+        if (likeBtnEl) likeBtnEl.classList.remove('liked');
+        if (likeIcon) {
+            likeIcon.src = 'img/bite_1.svg';
+            likeIcon.alt = 'Bite';
+        }
     }
 }
 
