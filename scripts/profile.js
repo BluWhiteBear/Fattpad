@@ -585,10 +585,59 @@ window.viewWork = function(storyId) {
     window.location.href = `story.html?id=${storyId}`;
 };
 
-window.deleteWork = function(storyId, title) {
+window.deleteWork = async function(storyId, title) {
     if (confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
-        // TODO: Implement delete functionality
-        alert('Delete functionality coming soon!');
+        try {
+            // Show loading state
+            const deleteButton = event.target;
+            const originalText = deleteButton.textContent;
+            deleteButton.textContent = 'Deleting...';
+            deleteButton.disabled = true;
+            
+            // Delete from Firebase
+            await deleteDoc(doc(db, 'stories', storyId));
+            
+            // Also remove from published stories collection if it exists
+            try {
+                await deleteDoc(doc(db, 'published_stories', storyId));
+            } catch (error) {
+                // It's okay if the published story doesn't exist
+                console.log('Published story document not found, skipping deletion');
+            }
+            
+            // Refresh the works display
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileUserId = urlParams.get('userId');
+            const isOwnProfile = !profileUserId || (currentUser && profileUserId === currentUser.uid);
+            
+            if (isOwnProfile) {
+                loadUserWorks(currentUser?.uid, true);
+            } else {
+                loadUserWorks(profileUserId, false);
+            }
+            
+            console.log(`✅ Deleted story from Firebase: ${title}`);
+            
+            // Show success message briefly
+            const successMsg = document.createElement('div');
+            successMsg.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+            successMsg.style.zIndex = '9999';
+            successMsg.textContent = `"${title}" has been deleted successfully.`;
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+                successMsg.remove();
+            }, 3000);
+            
+        } catch (error) {
+            console.error('❌ Error deleting story:', error);
+            alert('Failed to delete story. Please try again.');
+            
+            // Reset button state
+            const deleteButton = event.target;
+            deleteButton.textContent = 'Delete';
+            deleteButton.disabled = false;
+        }
     }
 };
 
