@@ -202,7 +202,7 @@ async function displayStory(story) {
     const likeCount = story.likes || 0;
     const likeCountDisplay = document.getElementById('like-count-display');
     if (likeCountDisplay) {
-        likeCountDisplay.innerHTML = `<img src="img/bite_1.svg" alt="Bite" class="bite-icon" style="width: 16px; height: 16px; vertical-align: text-bottom;"> ${likeCount} Bites`;
+        likeCountDisplay.innerHTML = `<img src="img/bite_1.svg" alt="Bite" class="bite-icon" style="width: 18px; height: 18px; vertical-align: text-bottom;"> ${likeCount} Bites`;
     }
     
     // Create tags
@@ -389,18 +389,15 @@ function updateLikeButton(likeCount, isLiked = null) {
     
     likeCountEl.textContent = likeCount.toLocaleString();
     const likeIcon = document.getElementById('like-icon');
-    const likeText = document.getElementById('like-text');
     
     if (isLiked) {
         likeBtnEl.classList.add('liked');
         likeIcon.src = 'img/bite_2.svg';
         likeIcon.alt = 'Bitten';
-        likeText.textContent = 'Bitten';
     } else {
         likeBtnEl.classList.remove('liked');
         likeIcon.src = 'img/bite_1.svg';
         likeIcon.alt = 'Bite';
-        likeText.textContent = 'Bite';
     }
 }
 
