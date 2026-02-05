@@ -1188,8 +1188,3 @@ h1 {
     filter: invert(69%) sepia(35%) saturate(1064%) hue-rotate(313deg) brightness(97%) contrast(91%);
     transition: filter 0.2s ease;
 }
-
-.action-btn.liked .bite-icon {
-    /* Filter to convert black to --accent-color (#E97775) when liked */
-    filter: invert(69%) sepia(35%) saturate(1064%) hue-rotate(313deg) brightness(97%) contrast(91%);
-}

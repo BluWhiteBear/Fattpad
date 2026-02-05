@@ -391,21 +391,11 @@ function updateLikeButton(likeCount, isLiked = null) {
             console.warn('like-count element not found');
         }
         
-        const likeIcon = document.getElementById('like-icon');
-        console.log('likeIcon found:', likeIcon);
-        
+        // Update liked state for other potential styling, but don't change the icon
         if (isLiked) {
             if (likeBtnEl) likeBtnEl.classList.add('liked');
-            if (likeIcon) {
-                likeIcon.src = 'img/bite_2.svg';
-                likeIcon.alt = 'Bitten';
-            }
         } else {
             if (likeBtnEl) likeBtnEl.classList.remove('liked');
-            if (likeIcon) {
-                likeIcon.src = 'img/bite_1.svg';
-                likeIcon.alt = 'Bite';
-            }
         }
     }, 10);
 }
