@@ -119,7 +119,7 @@ function createStoryCard(story) {
                 <p class="work-author">by ${escapeHtml(story.authorName || 'Anonymous')}</p>
                 <div class="work-stats">
                     <span class="word-count">${story.wordCount || 0} words</span>
-                    <span class="rating">${story.contentRating || 'E'}</span>
+                    ${getContentRatingBadge(story.contentRating || 'E')}
                     ${story.likes ? `<span class="likes"><img src="img/bite_1.svg" alt="Bites" class="bite-icon-secondary" style="width: 14px; height: 14px; vertical-align: text-bottom;"> ${story.likes}</span>` : ''}
                     ${story.views ? `<span class="views">👁️ ${story.views}</span>` : ''}
                 </div>
@@ -169,7 +169,7 @@ function renderDemoStories(container) {
                 <p class="work-author">by ${story.author}</p>
                 <div class="work-stats">
                     <span class="word-count">${story.wordCount} words</span>
-                    <span class="rating">${story.rating}</span>
+                    ${getContentRatingBadge(story.rating)}
                 </div>
                 <p class="work-excerpt">Click to read this amazing story...</p>
             </div>
@@ -211,6 +211,18 @@ function initTabHandlers() {
 // Utility functions
 function getContentRating() {
     return localStorage.getItem('contentRating') || 'E';
+}
+
+function getContentRatingBadge(rating) {
+    const ratingMap = {
+        'E': { class: 'general', label: 'E' },
+        'T': { class: 'teen', label: 'T' },
+        'M': { class: 'mature', label: 'M' },
+        'X': { class: 'explicit', label: 'X' }
+    };
+    
+    const ratingInfo = ratingMap[rating] || ratingMap['E'];
+    return `<span class="content-rating ${ratingInfo.class}">${ratingInfo.label}</span>`;
 }
 
 function escapeHtml(text) {
