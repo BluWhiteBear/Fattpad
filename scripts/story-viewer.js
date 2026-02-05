@@ -21,7 +21,6 @@ const wordCountEl = document.getElementById('word-count');
 const viewCountEl = document.getElementById('view-count');
 const storyContentEl = document.getElementById('story-content');
 const likeBtnEl = document.getElementById('like-btn');
-const likeCountEl = document.getElementById('like-count');
 const shareBtn = document.getElementById('share-btn');
 
 let currentStory = null;
