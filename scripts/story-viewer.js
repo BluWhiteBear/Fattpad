@@ -724,8 +724,9 @@ async function loadComments() {
         // Hide loading state
         if (commentsLoading) commentsLoading.style.display = 'none';
         
-        // Update comment count
-        if (commentCount) commentCount.textContent = comments.length;
+        // Update comment count (only count top-level comments for display)
+        const topLevelComments = comments.filter(comment => !comment.parentCommentId);
+        if (commentCount) commentCount.textContent = topLevelComments.length;
         
         if (comments.length === 0) {
             // Show empty state
@@ -756,14 +757,36 @@ function renderComments(comments) {
     const existingComments = commentsList.querySelectorAll('.comment');
     existingComments.forEach(comment => comment.remove());
     
-    // Render each comment
-    comments.forEach(comment => {
-        const commentElement = createCommentElement(comment);
+    // Separate top-level comments from replies
+    const topLevelComments = comments.filter(comment => !comment.parentCommentId);
+    const replies = comments.filter(comment => comment.parentCommentId);
+    
+    // Group replies by parent comment ID
+    const repliesByParent = {};
+    replies.forEach(reply => {
+        if (!repliesByParent[reply.parentCommentId]) {
+            repliesByParent[reply.parentCommentId] = [];
+        }
+        repliesByParent[reply.parentCommentId].push(reply);
+    });
+    
+    // Sort replies by creation date (oldest first for replies)
+    Object.keys(repliesByParent).forEach(parentId => {
+        repliesByParent[parentId].sort((a, b) => {
+            const dateA = a.createdAt?.toDate?.() || new Date(0);
+            const dateB = b.createdAt?.toDate?.() || new Date(0);
+            return dateA - dateB;
+        });
+    });
+    
+    // Render top-level comments with their replies
+    topLevelComments.forEach(comment => {
+        const commentElement = createCommentElement(comment, repliesByParent[comment.id] || []);
         commentsList.appendChild(commentElement);
     });
 }
 
-function createCommentElement(comment) {
+function createCommentElement(comment, replies = []) {
     const commentDiv = document.createElement('div');
     commentDiv.className = 'comment';
     commentDiv.dataset.commentId = comment.id;
@@ -771,6 +794,35 @@ function createCommentElement(comment) {
     // Format date
     const date = comment.createdAt?.toDate?.() || new Date();
     const timeAgo = formatTimeAgo(date);
+    
+    // Create replies HTML
+    let repliesHTML = '';
+    if (replies.length > 0) {
+        repliesHTML = replies.map(reply => {
+            const replyDate = reply.createdAt?.toDate?.() || new Date();
+            const replyTimeAgo = formatTimeAgo(replyDate);
+            return `
+                <div class="reply">
+                    <div class="comment-header">
+                        <div class="comment-avatar">
+                            ${reply.authorName.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="comment-meta">
+                            <p class="comment-author">${escapeHtml(reply.authorName)}</p>
+                            <p class="comment-date">${replyTimeAgo}</p>
+                        </div>
+                    </div>
+                    <div class="comment-content">${escapeHtml(reply.content)}</div>
+                    <div class="comment-actions">
+                        <button class="comment-action like-action" onclick="likeComment('${reply.id}')">
+                            <i class="fas fa-heart"></i>
+                            <span>${reply.likes || 0}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
     
     commentDiv.innerHTML = `
         <div class="comment-header">
@@ -794,6 +846,7 @@ function createCommentElement(comment) {
             </button>
         </div>
         <div class="comment-replies" id="replies-${comment.id}">
+            ${repliesHTML}
             <div class="reply-form" id="reply-form-${comment.id}">
                 <div class="comment-form-container">
                     <div class="user-avatar">

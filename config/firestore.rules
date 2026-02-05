@@ -39,6 +39,21 @@ service cloud.firestore {
                    request.auth.uid == resource.data.userId;
     }
     
+    match /comments/{commentId} {
+      // Allow anyone to read comments
+      allow read: if true;
+      // Allow authenticated users to create comments
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.authorId;
+      // Allow comment authors to update their own comments (for likes)
+      allow update: if request.auth != null && 
+                   (request.auth.uid == resource.data.authorId || 
+                    onlyUpdatingLikes(request.resource.data, resource.data));
+      // Allow comment authors to delete their own comments
+      allow delete: if request.auth != null && 
+                   request.auth.uid == resource.data.authorId;
+    }
+    
     // Catch-all for debugging
     match /{document=**} {
       allow read: if true;
@@ -58,5 +73,11 @@ service cloud.firestore {
   function onlyUpdatingReadStatus(newData, existingData) {
     return newData.diff(existingData).affectedKeys()
            .hasOnly(['read']);
+  }
+  
+  // Helper function to check if only likes are being updated
+  function onlyUpdatingLikes(newData, existingData) {
+    return newData.diff(existingData).affectedKeys()
+           .hasOnly(['likes']);
   }
 }
