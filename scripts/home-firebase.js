@@ -120,7 +120,7 @@ function createStoryCard(story) {
                 <div class="work-stats">
                     <span class="word-count">${story.wordCount || 0} words</span>
                     <span class="rating">${story.contentRating || 'E'}</span>
-                    ${story.likes ? `<span class="likes"><div class="bite-icon-secondary" style="width: 14px; height: 14px; vertical-align: text-bottom; display: inline-block;"></div> ${story.likes}</span>` : ''}
+                    ${story.likes ? `<span class="likes"><img src="img/bite_1.svg" alt="Bites" class="bite-icon-secondary" style="width: 14px; height: 14px; vertical-align: text-bottom;"> ${story.likes}</span>` : ''}
                     ${story.views ? `<span class="views">👁️ ${story.views}</span>` : ''}
                 </div>
             </div>

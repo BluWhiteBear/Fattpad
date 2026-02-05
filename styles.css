@@ -1170,38 +1170,26 @@ h1 {
     color: var(--text-secondary);
 }
 
-/* Bite icon styling using CSS masks */
+/* Bite icon styling using CSS filters */
 .bite-icon {
-    background-color: var(--text-primary);
-    mask: url('img/bite_1.svg') no-repeat center;
-    mask-size: contain;
-    -webkit-mask: url('img/bite_1.svg') no-repeat center;
-    -webkit-mask-size: contain;
-    transition: background-color 0.2s ease;
+    /* Filter to convert black to --text-primary (#E8E8E8) */
+    filter: invert(91%) sepia(8%) saturate(298%) hue-rotate(316deg) brightness(95%) contrast(92%);
+    transition: filter 0.2s ease;
 }
 
 .bite-icon-secondary {
-    background-color: var(--text-secondary);
-    mask: url('img/bite_1.svg') no-repeat center;
-    mask-size: contain;
-    -webkit-mask: url('img/bite_1.svg') no-repeat center;
-    -webkit-mask-size: contain;
-    transition: background-color 0.2s ease;
+    /* Filter to convert black to --text-secondary (#998282) */
+    filter: invert(57%) sepia(12%) saturate(859%) hue-rotate(316deg) brightness(89%) contrast(88%);
+    transition: filter 0.2s ease;
 }
 
 .bite-icon-accent {
-    background-color: var(--accent-color);
-    mask: url('img/bite_1.svg') no-repeat center;
-    mask-size: contain;
-    -webkit-mask: url('img/bite_1.svg') no-repeat center;
-    -webkit-mask-size: contain;
-    transition: background-color 0.2s ease;
+    /* Filter to convert black to --accent-color (#E97775) */
+    filter: invert(69%) sepia(35%) saturate(1064%) hue-rotate(313deg) brightness(97%) contrast(91%);
+    transition: filter 0.2s ease;
 }
 
 .action-btn.liked .bite-icon {
-    background-color: var(--accent-color);
-    mask: url('img/bite_2.svg') no-repeat center;
-    mask-size: contain;
-    -webkit-mask: url('img/bite_2.svg') no-repeat center;
-    -webkit-mask-size: contain;
+    /* Filter to convert black to --accent-color (#E97775) when liked */
+    filter: invert(69%) sepia(35%) saturate(1064%) hue-rotate(313deg) brightness(97%) contrast(91%);
 }
