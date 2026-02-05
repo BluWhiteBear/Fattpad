@@ -373,32 +373,41 @@ async function handleLike() {
  * Update like button appearance
  */
 function updateLikeButton(likeCount, isLiked = null) {
+    console.log('updateLikeButton called with:', { likeCount, isLiked, currentStoryId });
+    
     if (isLiked === null) {
         // Check if already liked
         const likedStories = JSON.parse(localStorage.getItem('fattpad_liked_stories') || '[]');
         isLiked = likedStories.includes(currentStoryId);
     }
     
-    const likeCountElement = document.getElementById('like-count');
-    if (likeCountElement) {
-        likeCountElement.textContent = likeCount.toLocaleString();
-    }
-    
-    const likeIcon = document.getElementById('like-icon');
-    
-    if (isLiked) {
-        if (likeBtnEl) likeBtnEl.classList.add('liked');
-        if (likeIcon) {
-            likeIcon.src = 'img/bite_2.svg';
-            likeIcon.alt = 'Bitten';
+    // Wait a bit to ensure DOM is ready
+    setTimeout(() => {
+        const likeCountElement = document.getElementById('like-count');
+        console.log('likeCountElement found:', likeCountElement);
+        if (likeCountElement) {
+            likeCountElement.textContent = likeCount.toLocaleString();
+        } else {
+            console.warn('like-count element not found');
         }
-    } else {
-        if (likeBtnEl) likeBtnEl.classList.remove('liked');
-        if (likeIcon) {
-            likeIcon.src = 'img/bite_1.svg';
-            likeIcon.alt = 'Bite';
+        
+        const likeIcon = document.getElementById('like-icon');
+        console.log('likeIcon found:', likeIcon);
+        
+        if (isLiked) {
+            if (likeBtnEl) likeBtnEl.classList.add('liked');
+            if (likeIcon) {
+                likeIcon.src = 'img/bite_2.svg';
+                likeIcon.alt = 'Bitten';
+            }
+        } else {
+            if (likeBtnEl) likeBtnEl.classList.remove('liked');
+            if (likeIcon) {
+                likeIcon.src = 'img/bite_1.svg';
+                likeIcon.alt = 'Bite';
+            }
         }
-    }
+    }, 10);
 }
 
 /**
