@@ -1170,22 +1170,38 @@ h1 {
     color: var(--text-secondary);
 }
 
-/* Bite icon styling */
+/* Bite icon styling using CSS masks */
 .bite-icon {
-    filter: brightness(0) saturate(100%) invert(91%) sepia(8%) saturate(298%) hue-rotate(316deg) brightness(95%) contrast(92%);
-    transition: filter 0.2s ease;
+    background-color: var(--text-primary);
+    mask: url('img/bite_1.svg') no-repeat center;
+    mask-size: contain;
+    -webkit-mask: url('img/bite_1.svg') no-repeat center;
+    -webkit-mask-size: contain;
+    transition: background-color 0.2s ease;
 }
 
 .bite-icon-secondary {
-    filter: brightness(0) saturate(100%) invert(57%) sepia(12%) saturate(859%) hue-rotate(316deg) brightness(89%) contrast(88%);
-    transition: filter 0.2s ease;
+    background-color: var(--text-secondary);
+    mask: url('img/bite_1.svg') no-repeat center;
+    mask-size: contain;
+    -webkit-mask: url('img/bite_1.svg') no-repeat center;
+    -webkit-mask-size: contain;
+    transition: background-color 0.2s ease;
 }
 
 .bite-icon-accent {
-    filter: brightness(0) saturate(100%) invert(69%) sepia(35%) saturate(1064%) hue-rotate(313deg) brightness(97%) contrast(91%);
-    transition: filter 0.2s ease;
+    background-color: var(--accent-color);
+    mask: url('img/bite_1.svg') no-repeat center;
+    mask-size: contain;
+    -webkit-mask: url('img/bite_1.svg') no-repeat center;
+    -webkit-mask-size: contain;
+    transition: background-color 0.2s ease;
 }
 
 .action-btn.liked .bite-icon {
-    filter: brightness(0) saturate(100%) invert(69%) sepia(35%) saturate(1064%) hue-rotate(313deg) brightness(97%) contrast(91%);
+    background-color: var(--accent-color);
+    mask: url('img/bite_2.svg') no-repeat center;
+    mask-size: contain;
+    -webkit-mask: url('img/bite_2.svg') no-repeat center;
+    -webkit-mask-size: contain;
 }
