@@ -830,6 +830,7 @@ function createCommentElement(comment, replies = []) {
             
             // Check if this reply is responding to another reply
             let replyContext = '';
+            let replyClass = 'reply';
             if (reply.replyingToId) {
                 const targetReply = replies.find(r => r.id === reply.replyingToId);
                 if (targetReply) {
@@ -837,11 +838,12 @@ function createCommentElement(comment, replies = []) {
                         <i class="fas fa-reply"></i>
                         Replying to ${escapeHtml(targetReply.authorName)}
                     </div>`;
+                    replyClass = 'reply reply-to-reply'; // Add nested class for indentation
                 }
             }
             
             return `
-                <div class="reply" data-reply-id="${reply.id}">
+                <div class="${replyClass}" data-reply-id="${reply.id}">
                     <div class="comment-header">
                         <div class="comment-avatar">
                             ${reply.authorName.charAt(0).toUpperCase()}

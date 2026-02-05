@@ -719,6 +719,25 @@
     border-left: 3px solid var(--accent-color);
 }
 
+/* Nested reply indentation */
+.reply.reply-to-reply {
+    margin-left: 30px;
+    background: rgba(233, 119, 117, 0.08);
+    border-left: 3px solid rgba(233, 119, 117, 0.6);
+    position: relative;
+}
+
+.reply.reply-to-reply::before {
+    content: '';
+    position: absolute;
+    left: -18px;
+    top: 20px;
+    width: 15px;
+    height: 2px;
+    background: rgba(233, 119, 117, 0.4);
+    border-radius: 1px;
+}
+
 .reply-context {
     font-size: 12px;
     color: var(--text-secondary);
