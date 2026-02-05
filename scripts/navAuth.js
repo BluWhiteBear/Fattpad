@@ -79,6 +79,8 @@ function updateNavbarAuth(user = null) {
         // Always try to show notifications button if it exists
         if (notificationsBtn) {
             notificationsBtn.style.display = 'flex';
+            // Load and update notification badge count
+            updateNotificationBadge(user.uid);
             console.log('Notifications button made visible');
         } else {
             console.warn('Notifications button not found in DOM');
@@ -325,16 +327,27 @@ function createNotificationElement(notification) {
     
     switch (notification.type) {
         case 'follow':
-            notificationText = `${notification.data.followerName} started following you`;
+            notificationText = `${notification.fromUserName} started following you`;
             break;
         case 'like':
-            notificationText = `${notification.data.likerName} liked your story "${notification.data.storyTitle}"`;
+            notificationText = `${notification.fromUserName} liked your story "${notification.data?.storyTitle || 'your story'}"`;
             break;
         case 'comment':
-            notificationText = `${notification.data.commenterName} commented on "${notification.data.storyTitle}"`;
+            notificationText = `${notification.fromUserName} commented on your story`;
+            if (notification.message) {
+                // Use the message from the new notification format
+                notificationText = notification.message;
+            }
+            break;
+        case 'reply':
+            notificationText = `${notification.fromUserName} replied to your comment`;
+            if (notification.message) {
+                // Use the message from the new notification format
+                notificationText = notification.message;
+            }
             break;
         default:
-            notificationText = 'New notification';
+            notificationText = notification.message || 'New notification';
     }
     
     notificationDiv.innerHTML = `
@@ -385,6 +398,9 @@ async function markAllNotificationsRead() {
             toggleNotificationsDropdown();
         }
         
+        // Update badge count
+        updateNotificationBadge(currentUser.uid);
+        
     } catch (error) {
         console.error('❌ Error marking notifications as read:', error);
     }
@@ -392,3 +408,38 @@ async function markAllNotificationsRead() {
 
 // Make function available globally
 window.markAllNotificationsRead = markAllNotificationsRead;
+
+/**
+ * Update notification badge count
+ */
+async function updateNotificationBadge(userId) {
+    if (!userId) return;
+    
+    try {
+        const notificationsRef = collection(db, 'notifications');
+        const unreadQuery = query(
+            notificationsRef,
+            where('userId', '==', userId),
+            where('read', '==', false)
+        );
+        
+        const unreadSnapshot = await getDocs(unreadQuery);
+        const unreadCount = unreadSnapshot.size;
+        
+        const notificationBadge = document.querySelector('.notification-badge');
+        if (notificationBadge) {
+            if (unreadCount > 0) {
+                notificationBadge.textContent = unreadCount > 9 ? '9+' : unreadCount.toString();
+                notificationBadge.style.display = 'block';
+            } else {
+                notificationBadge.style.display = 'none';
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Error updating notification badge:', error);
+    }
+}
+
+// Make function available globally for other scripts
+window.updateNotificationBadge = updateNotificationBadge;

@@ -1,6 +1,6 @@
 // Story viewer functionality
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, doc, getDoc, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, query, where, orderBy, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { firebaseConfig } from '../config/firebase-config-public.js';
 
@@ -26,11 +26,13 @@ const shareBtn = document.getElementById('share-btn');
 let currentStory = null;
 let currentStoryId = null;
 let currentAuthorName = 'Anonymous';
+let currentUser = null;
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async function() {
     await loadStory();
     setupEventListeners();
+    loadComments();
 });
 
 /**
@@ -286,9 +288,17 @@ function setupEventListeners() {
         //TODO: Implement actual reporting functionality
     });
     
-    // Auth state listener for like button
+    // Font size controls
+    setupFontSizeControls();
+    
+    // Comments functionality
+    setupCommentsEventListeners();
+    
+    // Auth state listener for like button and comments
     auth.onAuthStateChanged((user) => {
+        currentUser = user;
         updateLikeButtonState(!!user);
+        updateCommentsUIForAuth(user);
     });
 }
 
@@ -468,3 +478,509 @@ function handleShare() {
         });
     }
 }
+
+/**
+ * Font Size Control Functions
+ */
+let currentFontSizeMultiplier = 1.0; // Default 100%
+
+function setupFontSizeControls() {
+    const decreaseBtn = document.getElementById('decrease-font');
+    const increaseBtn = document.getElementById('increase-font');
+    const fontSizeInput = document.getElementById('font-size-input');
+    
+    if (!decreaseBtn || !increaseBtn || !fontSizeInput) {
+        console.warn('Font size controls not found in DOM');
+        return;
+    }
+    
+    // Load saved font size preference
+    loadFontSizePreference();
+    
+    // Decrease font size
+    decreaseBtn.addEventListener('click', () => {
+        const newMultiplier = Math.max(0.1, currentFontSizeMultiplier - 0.1);
+        setFontSizeMultiplier(newMultiplier);
+    });
+    
+    // Increase font size
+    increaseBtn.addEventListener('click', () => {
+        const newMultiplier = Math.min(5.0, currentFontSizeMultiplier + 0.1);
+        setFontSizeMultiplier(newMultiplier);
+    });
+    
+    // Input field changes
+    fontSizeInput.addEventListener('input', (e) => {
+        const percentage = parseInt(e.target.value);
+        if (!isNaN(percentage)) {
+            const newMultiplier = Math.max(0.1, Math.min(5.0, percentage / 100));
+            setFontSizeMultiplier(newMultiplier, false); // Don't update input to avoid cursor issues
+        }
+    });
+    
+    // Input field blur (when user finishes editing)
+    fontSizeInput.addEventListener('blur', (e) => {
+        const percentage = parseInt(e.target.value);
+        if (isNaN(percentage) || percentage < 10 || percentage > 500) {
+            // Reset to current value if invalid
+            fontSizeInput.value = Math.round(currentFontSizeMultiplier * 100);
+        }
+    });
+}
+
+function setFontSizeMultiplier(multiplier, updateInput = true) {
+    currentFontSizeMultiplier = multiplier;
+    
+    // Update the story content font size
+    const storyContent = document.getElementById('story-content');
+    if (storyContent) {
+        storyContent.style.fontSize = `${16 * multiplier}px`;
+    }
+    
+    // Update the input field
+    if (updateInput) {
+        const fontSizeInput = document.getElementById('font-size-input');
+        if (fontSizeInput) {
+            fontSizeInput.value = Math.round(multiplier * 100);
+        }
+    }
+    
+    // Save preference
+    saveFontSizePreference();
+}
+
+function loadFontSizePreference() {
+    try {
+        const saved = localStorage.getItem('fattpad_font_size_multiplier');
+        if (saved) {
+            const multiplier = parseFloat(saved);
+            if (!isNaN(multiplier) && multiplier >= 0.1 && multiplier <= 5.0) {
+                setFontSizeMultiplier(multiplier);
+                return;
+            }
+        }
+    } catch (error) {
+        console.warn('Could not load font size preference:', error);
+    }
+    
+    // Set default if no saved preference or invalid value
+    setFontSizeMultiplier(1.0);
+}
+
+function saveFontSizePreference() {
+    try {
+        localStorage.setItem('fattpad_font_size_multiplier', currentFontSizeMultiplier.toString());
+    } catch (error) {
+        console.warn('Could not save font size preference:', error);
+    }
+}
+
+/**
+ * Comments System Functions
+ */
+function setupCommentsEventListeners() {
+    // Comment form submission
+    const commentForm = document.getElementById('comment-form');
+    const commentText = document.getElementById('comment-text');
+    const charCount = document.getElementById('char-count');
+    
+    if (commentForm && commentText && charCount) {
+        // Character count update
+        commentText.addEventListener('input', () => {
+            const count = commentText.value.length;
+            charCount.textContent = count;
+            
+            // Change color when approaching limit
+            if (count > 900) {
+                charCount.style.color = '#f44336';
+            } else if (count > 800) {
+                charCount.style.color = '#ff9800';
+            } else {
+                charCount.style.color = 'var(--text-secondary)';
+            }
+        });
+        
+        // Form submission
+        commentForm.addEventListener('submit', handleCommentSubmit);
+    }
+}
+
+function updateCommentsUIForAuth(user) {
+    const addCommentSection = document.getElementById('add-comment-section');
+    const loginPrompt = document.getElementById('login-prompt');
+    
+    if (user) {
+        // User is logged in - show comment form
+        if (addCommentSection) addCommentSection.style.display = 'block';
+        if (loginPrompt) loginPrompt.style.display = 'none';
+    } else {
+        // User not logged in - show login prompt
+        if (addCommentSection) addCommentSection.style.display = 'none';
+        if (loginPrompt) loginPrompt.style.display = 'block';
+    }
+}
+
+async function handleCommentSubmit(event) {
+    event.preventDefault();
+    
+    if (!currentUser || !currentStoryId) {
+        alert('Please log in to comment');
+        return;
+    }
+    
+    const commentText = document.getElementById('comment-text');
+    const content = commentText.value.trim();
+    
+    if (!content) {
+        alert('Please enter a comment');
+        return;
+    }
+    
+    try {
+        // Disable form while submitting
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+        
+        // Create comment object
+        const comment = {
+            storyId: currentStoryId,
+            authorId: currentUser.uid,
+            authorName: currentUser.displayName || currentUser.email || 'Anonymous',
+            content: content,
+            createdAt: serverTimestamp(),
+            likes: 0,
+            replies: []
+        };
+        
+        // Add to Firebase
+        await addDoc(collection(db, 'comments'), comment);
+        
+        // Create notification for story author
+        if (currentStory && currentStory.authorId && currentStory.authorId !== currentUser.uid) {
+            await createNotification({
+                userId: currentStory.authorId,
+                type: 'comment',
+                title: 'New comment on your story',
+                message: `${comment.authorName} commented on "${currentStory.title || 'your story'}": "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
+                relatedId: currentStoryId,
+                relatedType: 'story',
+                actionUrl: `story.html?id=${currentStoryId}`,
+                fromUserId: currentUser.uid,
+                fromUserName: comment.authorName
+            });
+        }
+        
+        // Clear form
+        commentText.value = '';
+        document.getElementById('char-count').textContent = '0';
+        
+        // Reload comments
+        await loadComments();
+        
+        console.log('✅ Comment posted successfully');
+        
+    } catch (error) {
+        console.error('❌ Error posting comment:', error);
+        alert('Failed to post comment. Please try again.');
+    } finally {
+        // Re-enable form
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Comment';
+    }
+}
+
+async function loadComments() {
+    if (!currentStoryId) return;
+    
+    const commentsLoading = document.getElementById('comments-loading');
+    const commentsEmpty = document.getElementById('comments-empty');
+    const commentsList = document.getElementById('comments-list');
+    const commentCount = document.getElementById('comment-count');
+    
+    try {
+        // Show loading state
+        if (commentsLoading) commentsLoading.style.display = 'flex';
+        if (commentsEmpty) commentsEmpty.style.display = 'none';
+        
+        // Query comments for this story
+        const commentsQuery = query(
+            collection(db, 'comments'),
+            where('storyId', '==', currentStoryId),
+            orderBy('createdAt', 'desc')
+        );
+        
+        const commentsSnapshot = await getDocs(commentsQuery);
+        const comments = [];
+        
+        commentsSnapshot.forEach((doc) => {
+            comments.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        // Hide loading state
+        if (commentsLoading) commentsLoading.style.display = 'none';
+        
+        // Update comment count
+        if (commentCount) commentCount.textContent = comments.length;
+        
+        if (comments.length === 0) {
+            // Show empty state
+            if (commentsEmpty) commentsEmpty.style.display = 'flex';
+        } else {
+            // Render comments
+            renderComments(comments);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error loading comments:', error);
+        if (commentsLoading) commentsLoading.style.display = 'none';
+        if (commentsEmpty) {
+            commentsEmpty.style.display = 'flex';
+            commentsEmpty.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Failed to load comments. Please refresh the page.</p>
+            `;
+        }
+    }
+}
+
+function renderComments(comments) {
+    const commentsList = document.getElementById('comments-list');
+    if (!commentsList) return;
+    
+    // Clear existing comments (keep loading/empty states)
+    const existingComments = commentsList.querySelectorAll('.comment');
+    existingComments.forEach(comment => comment.remove());
+    
+    // Render each comment
+    comments.forEach(comment => {
+        const commentElement = createCommentElement(comment);
+        commentsList.appendChild(commentElement);
+    });
+}
+
+function createCommentElement(comment) {
+    const commentDiv = document.createElement('div');
+    commentDiv.className = 'comment';
+    commentDiv.dataset.commentId = comment.id;
+    
+    // Format date
+    const date = comment.createdAt?.toDate?.() || new Date();
+    const timeAgo = formatTimeAgo(date);
+    
+    commentDiv.innerHTML = `
+        <div class="comment-header">
+            <div class="comment-avatar">
+                ${comment.authorName.charAt(0).toUpperCase()}
+            </div>
+            <div class="comment-meta">
+                <p class="comment-author">${escapeHtml(comment.authorName)}</p>
+                <p class="comment-date">${timeAgo}</p>
+            </div>
+        </div>
+        <div class="comment-content">${escapeHtml(comment.content)}</div>
+        <div class="comment-actions">
+            <button class="comment-action like-action" onclick="likeComment('${comment.id}')">
+                <i class="fas fa-heart"></i>
+                <span>${comment.likes || 0}</span>
+            </button>
+            <button class="comment-action reply-action" onclick="toggleReplyForm('${comment.id}')">
+                <i class="fas fa-reply"></i>
+                Reply
+            </button>
+        </div>
+        <div class="comment-replies" id="replies-${comment.id}">
+            <div class="reply-form" id="reply-form-${comment.id}">
+                <div class="comment-form-container">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <form class="comment-form" onsubmit="handleReplySubmit(event, '${comment.id}')">
+                        <textarea placeholder="Write a reply..." maxlength="500" required></textarea>
+                        <div class="comment-form-actions">
+                            <span class="char-count">0/500</span>
+                            <div>
+                                <button type="button" onclick="toggleReplyForm('${comment.id}')">Cancel</button>
+                                <button type="submit">Reply</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return commentDiv;
+}
+
+// Global functions for comment actions
+window.likeComment = async function(commentId) {
+    if (!currentUser) {
+        alert('Please log in to like comments');
+        return;
+    }
+    
+    try {
+        const commentRef = doc(db, 'comments', commentId);
+        await updateDoc(commentRef, {
+            likes: increment(1)
+        });
+        
+        // Update UI
+        const likeButton = document.querySelector(`[data-comment-id="${commentId}"] .like-action span`);
+        if (likeButton) {
+            const currentLikes = parseInt(likeButton.textContent) || 0;
+            likeButton.textContent = currentLikes + 1;
+        }
+        
+    } catch (error) {
+        console.error('❌ Error liking comment:', error);
+    }
+};
+
+window.toggleReplyForm = function(commentId) {
+    const replyForm = document.getElementById(`reply-form-${commentId}`);
+    if (replyForm) {
+        replyForm.classList.toggle('active');
+        
+        if (replyForm.classList.contains('active')) {
+            const textarea = replyForm.querySelector('textarea');
+            if (textarea) textarea.focus();
+        }
+    }
+};
+
+window.handleReplySubmit = async function(event, parentCommentId) {
+    event.preventDefault();
+    
+    if (!currentUser) {
+        alert('Please log in to reply');
+        return;
+    }
+    
+    const textarea = event.target.querySelector('textarea');
+    const content = textarea.value.trim();
+    
+    if (!content) {
+        alert('Please enter a reply');
+        return;
+    }
+    
+    try {
+        // Create reply object
+        const reply = {
+            storyId: currentStoryId,
+            parentCommentId: parentCommentId,
+            authorId: currentUser.uid,
+            authorName: currentUser.displayName || currentUser.email || 'Anonymous',
+            content: content,
+            createdAt: serverTimestamp(),
+            likes: 0
+        };
+        
+        // Add to Firebase as a new comment with parentCommentId
+        await addDoc(collection(db, 'comments'), reply);
+        
+        // Create notification for parent comment author
+        try {
+            // Get the parent comment to find its author
+            const parentCommentDoc = await getDoc(doc(db, 'comments', parentCommentId));
+            if (parentCommentDoc.exists()) {
+                const parentComment = parentCommentDoc.data();
+                if (parentComment.authorId && parentComment.authorId !== currentUser.uid) {
+                    await createNotification({
+                        userId: parentComment.authorId,
+                        type: 'reply',
+                        title: 'New reply to your comment',
+                        message: `${reply.authorName} replied to your comment: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
+                        relatedId: parentCommentId,
+                        relatedType: 'comment',
+                        actionUrl: `story.html?id=${currentStoryId}`,
+                        fromUserId: currentUser.uid,
+                        fromUserName: reply.authorName
+                    });
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to create reply notification:', error);
+        }
+        
+        // Hide reply form and clear content
+        textarea.value = '';
+        toggleReplyForm(parentCommentId);
+        
+        // Reload comments to show the new reply
+        await loadComments();
+        
+    } catch (error) {
+        console.error('❌ Error posting reply:', error);
+        alert('Failed to post reply. Please try again.');
+    }
+};
+
+// Helper functions
+function formatTimeAgo(date) {
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 30) return `${days}d ago`;
+    
+    return date.toLocaleDateString();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Notification System Functions
+ */
+async function createNotification(notificationData) {
+    try {
+        const notification = {
+            ...notificationData,
+            createdAt: serverTimestamp(),
+            read: false,
+            id: null // Will be set by Firestore
+        };
+        
+        await addDoc(collection(db, 'notifications'), notification);
+        console.log('✅ Notification created successfully');
+        
+        // Update notification badge if the function is available
+        if (window.updateNotificationBadge) {
+            window.updateNotificationBadge(notificationData.userId);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error creating notification:', error);
+        // Don't throw - notifications are nice-to-have, not essential
+    }
+}
+
+// Notification types:
+// {
+//   userId: string,           // Who gets the notification
+//   type: 'comment' | 'reply' | 'like' | 'follow',
+//   title: string,            // Notification title
+//   message: string,          // Notification content
+//   relatedId: string,        // ID of related entity (story, comment, etc.)
+//   relatedType: 'story' | 'comment' | 'user',
+//   actionUrl: string,        // URL to navigate when clicked
+//   fromUserId: string,       // Who triggered the notification
+//   fromUserName: string,     // Display name of triggering user
+//   createdAt: timestamp,     // When notification was created
+//   read: boolean            // Whether notification has been read
+// }

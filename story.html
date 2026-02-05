@@ -104,7 +104,17 @@
                 <!-- Story Content -->
                 <div class="story-content-wrapper">
                     <div class="chapter-header">
-                        <h2 class="chapter-title">story content</h2>
+                        
+                        <!-- Reading Controls -->
+                        <div class="reading-controls">
+                            <div class="font-size-controls">
+                                <label class="control-label">font size:</label>
+                                <button class="font-size-btn" id="decrease-font" title="Decrease font size">-</button>
+                                <input type="number" id="font-size-input" min="10" max="500" step="10" value="100" title="Font size percentage">
+                                <span class="percentage-symbol">%</span>
+                                <button class="font-size-btn" id="increase-font" title="Increase font size">+</button>
+                            </div>
+                        </div>
                     </div>
                     
                     <article class="story-article">
@@ -112,6 +122,65 @@
                             story content will appear here...
                         </div>
                     </article>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section" id="comments-section">
+                    <div class="comments-header">
+                        <h3 class="comments-title">
+                            <i class="fas fa-comments"></i>
+                            Comments (<span id="comment-count">0</span>)
+                        </h3>
+                    </div>
+
+                    <!-- Add Comment Form -->
+                    <div class="add-comment-section" id="add-comment-section">
+                        <div class="comment-form-container">
+                            <div class="user-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <form class="comment-form" id="comment-form">
+                                <textarea 
+                                    id="comment-text" 
+                                    placeholder="Share your thoughts about this story..." 
+                                    maxlength="1000" 
+                                    required>
+                                </textarea>
+                                <div class="comment-form-actions">
+                                    <span class="char-count">
+                                        <span id="char-count">0</span>/1000
+                                    </span>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i>
+                                        Post Comment
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Login Prompt (for non-authenticated users) -->
+                    <div class="login-prompt" id="login-prompt" style="display: none;">
+                        <div class="login-prompt-content">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <p>Please <a href="login.html">log in</a> to leave a comment</p>
+                        </div>
+                    </div>
+
+                    <!-- Comments List -->
+                    <div class="comments-list" id="comments-list">
+                        <!-- Loading state -->
+                        <div class="comments-loading" id="comments-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Loading comments...</span>
+                        </div>
+
+                        <!-- Empty state -->
+                        <div class="comments-empty" id="comments-empty" style="display: none;">
+                            <i class="fas fa-comment-slash"></i>
+                            <p>No comments yet. Be the first to share your thoughts!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
