@@ -294,6 +294,9 @@ function setupEventListeners() {
     // Comments functionality
     setupCommentsEventListeners();
     
+    // Comment sorting functionality
+    setupCommentSorting();
+    
     // Auth state listener for like button and comments
     auth.onAuthStateChanged((user) => {
         currentUser = user;
@@ -732,8 +735,10 @@ async function loadComments() {
             // Show empty state
             if (commentsEmpty) commentsEmpty.style.display = 'flex';
         } else {
-            // Render comments
-            renderComments(comments);
+            // Render comments with current sort option
+            const sortSelect = document.getElementById('comment-sort-select');
+            const sortBy = sortSelect ? sortSelect.value : 'newest';
+            renderComments(comments, sortBy);
         }
         
     } catch (error) {
@@ -749,7 +754,7 @@ async function loadComments() {
     }
 }
 
-function renderComments(comments) {
+function renderComments(comments, sortBy = 'newest') {
     const commentsList = document.getElementById('comments-list');
     if (!commentsList) return;
     
@@ -761,6 +766,27 @@ function renderComments(comments) {
     const topLevelComments = comments.filter(comment => !comment.parentCommentId);
     const replies = comments.filter(comment => comment.parentCommentId);
     
+    // Sort top-level comments based on the selected option
+    if (sortBy === 'newest') {
+        topLevelComments.sort((a, b) => {
+            const dateA = a.createdAt?.toDate?.() || new Date(0);
+            const dateB = b.createdAt?.toDate?.() || new Date(0);
+            return dateB - dateA; // Newest first
+        });
+    } else if (sortBy === 'top') {
+        topLevelComments.sort((a, b) => {
+            const likesA = a.likes || 0;
+            const likesB = b.likes || 0;
+            if (likesB === likesA) {
+                // If likes are equal, sort by newest
+                const dateA = a.createdAt?.toDate?.() || new Date(0);
+                const dateB = b.createdAt?.toDate?.() || new Date(0);
+                return dateB - dateA;
+            }
+            return likesB - likesA; // Most likes first
+        });
+    }
+    
     // Group replies by parent comment ID
     const repliesByParent = {};
     replies.forEach(reply => {
@@ -770,12 +796,12 @@ function renderComments(comments) {
         repliesByParent[reply.parentCommentId].push(reply);
     });
     
-    // Sort replies by creation date (oldest first for replies)
+    // Sort replies by creation date (oldest first for natural conversation flow)
     Object.keys(repliesByParent).forEach(parentId => {
         repliesByParent[parentId].sort((a, b) => {
             const dateA = a.createdAt?.toDate?.() || new Date(0);
             const dateB = b.createdAt?.toDate?.() || new Date(0);
-            return dateA - dateB;
+            return dateA - dateB; // Oldest first for replies
         });
     });
     
@@ -801,8 +827,21 @@ function createCommentElement(comment, replies = []) {
         repliesHTML = replies.map(reply => {
             const replyDate = reply.createdAt?.toDate?.() || new Date();
             const replyTimeAgo = formatTimeAgo(replyDate);
+            
+            // Check if this reply is responding to another reply
+            let replyContext = '';
+            if (reply.replyingToId) {
+                const targetReply = replies.find(r => r.id === reply.replyingToId);
+                if (targetReply) {
+                    replyContext = `<div class="reply-context">
+                        <i class="fas fa-reply"></i>
+                        Replying to ${escapeHtml(targetReply.authorName)}
+                    </div>`;
+                }
+            }
+            
             return `
-                <div class="reply">
+                <div class="reply" data-reply-id="${reply.id}">
                     <div class="comment-header">
                         <div class="comment-avatar">
                             ${reply.authorName.charAt(0).toUpperCase()}
@@ -812,11 +851,16 @@ function createCommentElement(comment, replies = []) {
                             <p class="comment-date">${replyTimeAgo}</p>
                         </div>
                     </div>
+                    ${replyContext}
                     <div class="comment-content">${escapeHtml(reply.content)}</div>
                     <div class="comment-actions">
                         <button class="comment-action like-action" onclick="likeComment('${reply.id}')">
                             <i class="fas fa-heart"></i>
                             <span>${reply.likes || 0}</span>
+                        </button>
+                        <button class="comment-action reply-action" onclick="toggleReplyToReply('${comment.id}', '${reply.id}', '${escapeHtml(reply.authorName)}')">
+                            <i class="fas fa-reply"></i>
+                            Reply
                         </button>
                     </div>
                 </div>
@@ -898,11 +942,43 @@ window.likeComment = async function(commentId) {
 window.toggleReplyForm = function(commentId) {
     const replyForm = document.getElementById(`reply-form-${commentId}`);
     if (replyForm) {
+        // Hide any other open reply forms first
+        document.querySelectorAll('.reply-form.active').forEach(form => {
+            if (form.id !== `reply-form-${commentId}`) {
+                form.classList.remove('active');
+            }
+        });
+        
         replyForm.classList.toggle('active');
         
         if (replyForm.classList.contains('active')) {
             const textarea = replyForm.querySelector('textarea');
-            if (textarea) textarea.focus();
+            if (textarea) {
+                textarea.placeholder = 'Write a reply...';
+                textarea.dataset.replyingTo = '';
+                textarea.focus();
+            }
+        }
+    }
+};
+
+window.toggleReplyToReply = function(parentCommentId, replyId, replyAuthor) {
+    const replyForm = document.getElementById(`reply-form-${parentCommentId}`);
+    if (replyForm) {
+        // Hide any other open reply forms first
+        document.querySelectorAll('.reply-form.active').forEach(form => {
+            if (form.id !== `reply-form-${parentCommentId}`) {
+                form.classList.remove('active');
+            }
+        });
+        
+        replyForm.classList.add('active');
+        
+        const textarea = replyForm.querySelector('textarea');
+        if (textarea) {
+            textarea.placeholder = `Replying to ${replyAuthor}...`;
+            textarea.dataset.replyingTo = replyId;
+            textarea.focus();
         }
     }
 };
@@ -917,6 +993,7 @@ window.handleReplySubmit = async function(event, parentCommentId) {
     
     const textarea = event.target.querySelector('textarea');
     const content = textarea.value.trim();
+    const replyingToId = textarea.dataset.replyingTo;
     
     if (!content) {
         alert('Please enter a reply');
@@ -935,35 +1012,65 @@ window.handleReplySubmit = async function(event, parentCommentId) {
             likes: 0
         };
         
+        // If replying to a specific reply, add that context
+        if (replyingToId) {
+            reply.replyingToId = replyingToId;
+        }
+        
         // Add to Firebase as a new comment with parentCommentId
         await addDoc(collection(db, 'comments'), reply);
         
-        // Create notification for parent comment author
-        try {
-            // Get the parent comment to find its author
-            const parentCommentDoc = await getDoc(doc(db, 'comments', parentCommentId));
-            if (parentCommentDoc.exists()) {
-                const parentComment = parentCommentDoc.data();
-                if (parentComment.authorId && parentComment.authorId !== currentUser.uid) {
-                    await createNotification({
-                        userId: parentComment.authorId,
-                        type: 'reply',
-                        title: 'New reply to your comment',
-                        message: `${reply.authorName} replied to your comment: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
-                        relatedId: parentCommentId,
-                        relatedType: 'comment',
-                        actionUrl: `story.html?id=${currentStoryId}`,
-                        fromUserId: currentUser.uid,
-                        fromUserName: reply.authorName
-                    });
+        // Create notification for the person being replied to
+        let notificationTargetId = null;
+        let notificationTargetName = '';
+        
+        if (replyingToId) {
+            // Replying to a specific reply - notify that reply's author
+            try {
+                const targetReplyDoc = await getDoc(doc(db, 'comments', replyingToId));
+                if (targetReplyDoc.exists()) {
+                    const targetReply = targetReplyDoc.data();
+                    notificationTargetId = targetReply.authorId;
+                    notificationTargetName = targetReply.authorName;
                 }
+            } catch (error) {
+                console.warn('Could not get target reply for notification:', error);
             }
-        } catch (error) {
-            console.warn('Failed to create reply notification:', error);
+        }
+        
+        if (!notificationTargetId) {
+            // Default to parent comment author if no specific reply target
+            try {
+                const parentCommentDoc = await getDoc(doc(db, 'comments', parentCommentId));
+                if (parentCommentDoc.exists()) {
+                    const parentComment = parentCommentDoc.data();
+                    notificationTargetId = parentComment.authorId;
+                    notificationTargetName = parentComment.authorName;
+                }
+            } catch (error) {
+                console.warn('Could not get parent comment for notification:', error);
+            }
+        }
+        
+        // Create notification if we have a target and it's not the current user
+        if (notificationTargetId && notificationTargetId !== currentUser.uid) {
+            await createNotification({
+                userId: notificationTargetId,
+                type: 'reply',
+                title: 'New reply to your comment',
+                message: `${reply.authorName} replied to your comment: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
+                relatedId: parentCommentId,
+                relatedType: 'comment',
+                actionUrl: `story.html?id=${currentStoryId}`,
+                fromUserId: currentUser.uid,
+                fromUserName: reply.authorName
+            });
         }
         
         // Hide reply form and clear content
         textarea.value = '';
+        textarea.placeholder = 'Write a reply...';
+        textarea.dataset.replyingTo = '';
         toggleReplyForm(parentCommentId);
         
         // Reload comments to show the new reply
@@ -995,6 +1102,53 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+/**
+ * Comment Sorting Functions
+ */
+function setupCommentSorting() {
+    const sortSelect = document.getElementById('comment-sort-select');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            // Re-render comments with new sorting
+            reloadCommentsWithCurrentSort();
+        });
+    }
+}
+
+async function reloadCommentsWithCurrentSort() {
+    // Get current comments data and re-render with selected sort
+    if (!currentStoryId) return;
+    
+    try {
+        // Query comments again (we could cache them but this ensures fresh data)
+        const commentsQuery = query(
+            collection(db, 'comments'),
+            where('storyId', '==', currentStoryId),
+            orderBy('createdAt', 'desc')
+        );
+        
+        const commentsSnapshot = await getDocs(commentsQuery);
+        const comments = [];
+        
+        commentsSnapshot.forEach((doc) => {
+            comments.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        // Get current sort option
+        const sortSelect = document.getElementById('comment-sort-select');
+        const sortBy = sortSelect ? sortSelect.value : 'newest';
+        
+        // Render with current sort
+        renderComments(comments, sortBy);
+        
+    } catch (error) {
+        console.error('❌ Error reloading comments for sorting:', error);
+    }
 }
 
 /**
