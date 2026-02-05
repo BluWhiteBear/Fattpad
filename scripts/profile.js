@@ -29,13 +29,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Load specific user's profile (public view)
                 console.log('🔍 Loading profile for user:', profileUserId);
                 loadUserProfile(profileUserId, false); // false = not own profile
-                loadUserWorks(profileUserId);
+                loadUserWorks(profileUserId, false); // false = not own profile
                 loadUserStats(profileUserId);
             } else {
                 // Load current user's own profile
                 console.log('👤 Loading own profile');
                 loadUserProfile(user.uid, true); // true = own profile
-                loadUserWorks(user.uid);
+                loadUserWorks(user.uid, true); // true = own profile
                 loadUserStats(user.uid);
                 // Migrate any stories with local_user authorId
                 migrateLocalUserStories(user.uid);
@@ -352,7 +352,7 @@ async function loadUserWorks(userId = null, isOwnProfile = true) {
         });
         
         // Add local drafts if viewing own profile
-        if (isOwnProfile && currentUser) {
+        if (isOwnProfile && currentUser && targetUserId === currentUser.uid) {
             const localDrafts = loadLocalDrafts();
             localDrafts.forEach(draft => {
                 allWorks.push({
