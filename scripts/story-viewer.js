@@ -43,7 +43,7 @@ async function loadStory() {
         currentStoryId = urlParams.get('id');
         
         if (!currentStoryId) {
-            showError('No story ID provided');
+            showError('no story ID provided');
             return;
         }
 
@@ -58,7 +58,7 @@ async function loadStory() {
         }
 
         if (!story) {
-            showError('Story not found');
+            showError('story not found');
             return;
         }
 
@@ -72,7 +72,7 @@ async function loadStory() {
 
     } catch (error) {
         console.error('Error loading story:', error);
-        showError('Failed to load story');
+        showError('failed to load story');
     }
 }
 
@@ -142,26 +142,26 @@ async function displayStory(story) {
     }
     
     // Set title
-    storyTitleEl.textContent = story.title || 'Untitled Story';
-    document.title = `${story.title || 'Untitled Story'} - Fattpad`;
+    storyTitleEl.textContent = story.title || 'untitled story';
+    document.title = `${story.title || 'untitled story'} - Fattpad`;
     
     // Fetch and set author info
-    let authorName = 'Anonymous';
+    let authorName = 'anonymous';
     if (story.authorId) {
         try {
             const authorDoc = await getDoc(doc(db, 'users', story.authorId));
             if (authorDoc.exists()) {
                 const authorData = authorDoc.data();
-                authorName = authorData.displayName || 'Anonymous';
+                authorName = authorData.displayName || 'anonymous';
             }
         } catch (error) {
             console.warn('Could not fetch author data:', error);
             // Fall back to stored authorName if it exists
-            authorName = story.authorName || story.author || 'Anonymous';
+            authorName = story.authorName || story.author || 'anonymous';
         }
     } else {
         // Fall back to stored authorName for backward compatibility
-        authorName = story.authorName || story.author || 'Anonymous';
+        authorName = story.authorName || story.author || 'anonymous';
     }
     
     // Set author with clickable link if authorId is available
@@ -182,20 +182,20 @@ async function displayStory(story) {
         const publishDate = story.publishedAt.seconds ? 
             new Date(story.publishedAt.seconds * 1000) : 
             new Date(story.publishedAt);
-        publishedDateEl.innerHTML = `<i class="fas fa-calendar"></i> Published ${publishDate.toLocaleDateString('en-US', {
+        publishedDateEl.innerHTML = `<i class="fas fa-calendar"></i> published ${publishDate.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short', 
             day: 'numeric'
         })}`;
     } else {
-        publishedDateEl.innerHTML = '<i class="fas fa-calendar"></i> Published Unknown';
+        publishedDateEl.innerHTML = '<i class="fas fa-calendar"></i> published unknown';
     }
     
     const wordCount = story.wordCount || (story.content ? story.content.trim().split(/\s+/).length : 0);
     wordCountEl.innerHTML = `<i class="fas fa-file-alt"></i> ${wordCount.toLocaleString()} words`;
     
     const viewCount = story.views || 0;
-    viewCountEl.innerHTML = `<i class="fas fa-eye"></i> ${viewCount.toLocaleString()} Views`;
+    viewCountEl.innerHTML = `<i class="fas fa-eye"></i> ${viewCount.toLocaleString()} views`;
     
     // Create tags
     const tagsContainer = document.getElementById('story-tags');
@@ -224,7 +224,7 @@ async function displayStory(story) {
             // Create a short excerpt from content if no description
             const excerpt = story.content ? 
                 story.content.substring(0, 200) + (story.content.length > 200 ? '...' : '') : 
-                'No description available.';
+                'no description available.';
             descriptionEl.textContent = excerpt;
         }
     }
@@ -249,7 +249,7 @@ async function displayStory(story) {
         const paragraphs = story.content.split('\n').filter(p => p.trim());
         storyContentEl.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
     } else {
-        storyContentEl.innerHTML = '<p>No content available.</p>';
+        storyContentEl.innerHTML = '<p>no content available.</p>';
     }
     
     // Update like button
@@ -281,7 +281,9 @@ function setupEventListeners() {
     
     // Report button (placeholder)
     document.getElementById('report-btn').addEventListener('click', () => {
-        alert('Story reported. Thank you for helping keep our community safe.');
+        alert('story reported. thank you for helping keep our community safe.');
+
+        //TODO: Implement actual reporting functionality
     });
     
     // Auth state listener for like button
@@ -300,12 +302,12 @@ async function handleLike() {
     
     // Check if user is authenticated
     if (!auth.currentUser) {
-        console.log('❌ User not authenticated');
+        console.log('❌ user not authenticated');
         return;
     }
     
     if (!currentStory || !currentStoryId) {
-        console.log('❌ No current story or story ID');
+        console.log('❌ no current story or story ID');
         return;
     }
     
@@ -448,8 +450,8 @@ function handleShare() {
     if (!currentStory) return;
     
     const shareData = {
-        title: currentStory.title || 'Check out this story',
-        text: `"${currentStory.title}" by ${currentAuthorName} on Fattpad`,
+        title: currentStory.title || 'check out this story',
+        text: `"${currentStory.title}" by ${currentAuthorName} on fattpad`,
         url: window.location.href
     };
     
@@ -459,10 +461,10 @@ function handleShare() {
     } else {
         // Fallback: copy URL to clipboard
         navigator.clipboard.writeText(window.location.href).then(() => {
-            alert('Story URL copied to clipboard!');
+            alert('story URL copied to clipboard!');
         }).catch(() => {
             // Final fallback: show URL in alert
-            alert(`Share this story: ${window.location.href}`);
+            alert(`share this story: ${window.location.href}`);
         });
     }
 }
