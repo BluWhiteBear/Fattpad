@@ -1,4 +1,6 @@
 // Story Editor with Firebase Integration
+import authManager from './auth-manager.js';
+
 let db = null;
 let auth = null;
 let currentStory = null;
@@ -1012,6 +1014,12 @@ async function publishToFirebase() {
             }
         }
         
+        const currentUser = authManager.getCurrentUser();
+        if (!currentUser) {
+            alert('⚠️ You must be logged in to publish stories.');
+            return false;
+        }
+        
         const storyData = {
             id: storyId,
             title: title.trim(),
@@ -1021,7 +1029,7 @@ async function publishToFirebase() {
             contentRating: rating,
             tags: tags,
             coverUrl: coverUrl.trim() || null,
-            authorId: localStorageUser.id || 'local_user',
+            authorId: currentUser.uid,
             publishedAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             wordCount: wordCount,
@@ -1284,7 +1292,8 @@ async function saveLocally(showNotification = true) {
     const description = document.getElementById('story-description').value;
     const coverUrl = document.getElementById('cover-url').value;
     const tags = getSelectedTags();
-    const localStorageUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const localStorageUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+    const currentUser = authManager.getCurrentUser();
     
     // Save to localStorage (no strict validation for saves)
     const storyId = currentStory?.id || generateStoryId();
@@ -1309,7 +1318,7 @@ async function saveLocally(showNotification = true) {
         contentRating: rating,
         tags: tags,
         coverUrl: coverUrl.trim() || null,
-        authorId: localStorageUser.id || 'local_user',
+        authorId: currentUser?.uid || localStorageUser?.id || 'local_user', // Fallback for offline mode
         updatedAt: Date.now(),
         wordCount: wordCount,
         views: 0,
@@ -1364,7 +1373,8 @@ async function publishLocally() {
     const description = document.getElementById('story-description').value;
     const coverUrl = document.getElementById('cover-url').value;
     const tags = getSelectedTags();
-    const localStorageUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const localStorageUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+    const currentUser = authManager.getCurrentUser();
     
     // Save to localStorage as published story
     const storyId = currentStory?.id || generateStoryId();
@@ -1389,7 +1399,7 @@ async function publishLocally() {
         contentRating: rating,
         tags: tags,
         coverUrl: coverUrl.trim() || null,
-        authorId: localStorageUser.id || 'local_user',
+        authorId: currentUser?.uid || localStorageUser?.id || 'local_user', // Fallback for offline mode
         publishedAt: Date.now(),
         updatedAt: Date.now(),
         wordCount: wordCount,
