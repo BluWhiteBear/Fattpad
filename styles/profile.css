@@ -169,6 +169,13 @@
     transform: translateY(0);
 }
 
+/* Non-clickable stats styling - matches stat-link base appearance */
+.stat-item {
+    display: block;
+    border-radius: 8px;
+    padding: 8px;
+}
+
 /* User card styling for followers/following pages */
 .user-card {
     border: 1px solid rgba(233,119,117,0.2);
