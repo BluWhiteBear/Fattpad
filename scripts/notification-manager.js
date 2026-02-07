@@ -165,6 +165,24 @@ export const NotificationTypes = {
                 storyTitle
             }
         });
+    },
+
+    /**
+     * Create a comment like notification
+     */
+    async commentLike(commentAuthorId, likerUserId, likerName, storyId, commentId) {
+        return createNotification({
+            userId: commentAuthorId,
+            type: 'like',
+            message: `${likerName} liked your comment`,
+            fromUserId: likerUserId,
+            fromUserName: likerName,
+            relatedId: storyId,
+            actionUrl: `story.html?id=${storyId}#comment-${commentId}`,
+            data: {
+                commentId
+            }
+        });
     }
 };
 

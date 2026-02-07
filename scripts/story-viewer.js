@@ -373,6 +373,17 @@ async function handleLike() {
                 await updateDoc(storyRef, {
                     likes: increment(1)
                 });
+                
+                // Create like notification for story author (only if it's not the author liking their own story)
+                if (currentStory.authorId && currentStory.authorId !== auth.currentUser.uid) {
+                    await NotificationTypes.like(
+                        currentStory.authorId,
+                        auth.currentUser.uid,
+                        auth.currentUser.displayName || 'Anonymous User',
+                        currentStoryId,
+                        currentStory.title || 'Untitled Story'
+                    );
+                }
             }
             
             currentStory.likes = (currentStory.likes || 0) + 1;
@@ -942,10 +953,30 @@ window.likeComment = async function(commentId) {
     }
     
     try {
+        // Get comment data to find the author for notification
+        const commentDoc = await getDoc(doc(db, 'comments', commentId));
+        let commentAuthorId = null;
+        
+        if (commentDoc.exists()) {
+            const commentData = commentDoc.data();
+            commentAuthorId = commentData.authorId;
+        }
+        
         const commentRef = doc(db, 'comments', commentId);
         await updateDoc(commentRef, {
             likes: increment(1)
         });
+        
+        // Create like notification for comment author (only if it's not the author liking their own comment)
+        if (commentAuthorId && commentAuthorId !== currentUser.uid) {
+            await NotificationTypes.commentLike(
+                commentAuthorId,
+                currentUser.uid,
+                currentUser.displayName || 'Anonymous User',
+                currentStoryId,
+                commentId
+            );
+        }
         
         // Update UI
         const likeButton = document.querySelector(`[data-comment-id="${commentId}"] .like-action span`);

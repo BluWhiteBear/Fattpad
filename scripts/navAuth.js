@@ -95,10 +95,17 @@ function updateNavbarAuth(user = null) {
             if (user.photoURL) {
                 profileImg.src = user.photoURL;
             } else {
-                // Use a simple data URI for default avatar
-                profileImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNFOTc3NzUiLz4KPGJ0ZXh0IHg9IjE2IiB5PSIyMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0U4RThFOCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+VTwvdGV4dD4KPHN2Zz4=';
+                // Use default profile picture
+                profileImg.src = 'img/pfp-default.png';
             }
-            profileImg.alt = user.name || 'Profile';
+            profileImg.alt = user.displayName || user.email || 'Profile';
+            
+            // Add error handler in case the image fails to load
+            profileImg.onerror = function() {
+                console.warn('Failed to load profile image, using default');
+                this.src = 'img/pfp-default.png';
+                this.onerror = null; // Prevent infinite loop
+            };
         }
         
         // Add click handler to profile button
