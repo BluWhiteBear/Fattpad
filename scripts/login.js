@@ -1,107 +1,142 @@
-// Firebase Auth Configuration
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { firebaseConfig } from '../config/firebase-config-public.js';
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
+/**
+ * Login Page Script
+ * Uses centralized auth-manager for all authentication operations
+ */
+import authManager from './auth-manager.js';
 
 // Google Sign In Handler
-function handleGoogleSignIn() {
-    signInWithPopup(auth, provider)
-        .then(async (result) => {
-            const user = result.user;
-            console.log('User signed in:', user);
-            
-            // Ensure user profile exists
-            await ensureUserProfile(user);
-            
-            // Show success message and redirect
-            showLoginSuccess(user.displayName);
+async function handleGoogleSignIn() {
+    try {
+        showLoading('Signing in with Google...');
+        const result = await authManager.signInWithGoogle();
+        
+        if (result.success) {
+            console.log('✅ Google sign in successful:', result.user.displayName);
+            showLoginSuccess(result.user.displayName || 'User');
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 1500);
-        })
-        .catch((error) => {
-            console.error('Error signing in:', error);
-            showLoginError(error.message);
-        });
+        } else {
+            showLoginError(result.error);
+        }
+    } catch (error) {
+        console.error('❌ Google sign in error:', error);
+        showLoginError('Failed to sign in with Google. Please try again.');
+    } finally {
+        hideLoading();
+    }
 }
 
 // Make function available globally for Google button
 window.handleGoogleSignIn = handleGoogleSignIn;
 
-// Traditional login form handler
+// Email/Password login form handler
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
     
-    loginForm.addEventListener('submit', function(e) {
+    // Initialize auth state check
+    initAuthStateListener();
+    
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const email = document.getElementById('email').value;
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
         const remember = document.getElementById('remember').checked;
         
-        // Sign in with Firebase Auth
-        signInWithEmailAndPassword(auth, email, password)
-            .then(async (userCredential) => {
-                const user = userCredential.user;
-                console.log('User signed in:', user);
+        // Basic validation
+        if (!email || !password) {
+            showLoginError('Please enter both email and password');
+            return;
+        }
+        
+        try {
+            showLoading('Signing in...');
+            const result = await authManager.signInWithEmail(email, password);
+            
+            if (result.success) {
+                console.log('✅ Email sign in successful:', result.user.email);
                 
-                // Ensure user profile exists
-                await ensureUserProfile(user);
+                // Handle remember me (could store preference in localStorage if needed)
+                if (remember) {
+                    localStorage.setItem('fattpad_remember_user', 'true');
+                }
                 
-                showLoginSuccess(user.displayName || user.email);
+                showLoginSuccess(result.user.displayName || result.user.email);
                 setTimeout(() => {
-                    window.location.href = '../index.html';
+                    window.location.href = 'index.html';
                 }, 1500);
-            })
-            .catch((error) => {
-                console.error('Error signing in:', error);
-                showLoginError('Invalid email or password');
-            });
+            } else {
+                // Handle specific error messages
+                let errorMessage = 'Invalid email or password';
+                if (result.error.includes('user-not-found')) {
+                    errorMessage = 'No account found with this email address';
+                } else if (result.error.includes('wrong-password')) {
+                    errorMessage = 'Incorrect password';
+                } else if (result.error.includes('invalid-email')) {
+                    errorMessage = 'Please enter a valid email address';
+                } else if (result.error.includes('user-disabled')) {
+                    errorMessage = 'This account has been disabled';
+                }
+                showLoginError(errorMessage);
+            }
+        } catch (error) {
+            console.error('❌ Email sign in error:', error);
+            showLoginError('Sign in failed. Please try again.');
+        } finally {
+            hideLoading();
+        }
     });
 });
 
 /**
- * Ensure user profile exists in Firestore
+ * Initialize authentication state listener
  */
-async function ensureUserProfile(user) {
-    try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (!userDoc.exists()) {
-            console.log('📝 Creating user profile for:', user.email);
-            
-            const newProfile = {
-                uid: user.uid,
-                displayName: user.displayName || user.email.split('@')[0],
-                email: user.email,
-                photoURL: user.photoURL || '',
-                bio: '',
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                stats: {
-                    worksCount: 0,
-                    totalReads: 0,
-                    totalLikes: 0,
-                    followers: 0,
-                    following: 0
-                }
-            };
-            
-            await setDoc(userDocRef, newProfile);
-            console.log('✅ User profile created successfully');
-        } else {
-            console.log('✅ User profile already exists');
+function initAuthStateListener() {
+    // Check if user is already logged in and redirect
+    authManager.onAuthStateChanged((user) => {
+        if (user) {
+            console.log('✅ User already authenticated, redirecting to home');
+            window.location.href = 'index.html';
         }
-    } catch (error) {
-        console.error('❌ Error ensuring user profile:', error);
+    });
+}
+
+/**
+ * Show loading state
+ */
+function showLoading(message = 'Loading...') {
+    const loginForm = document.getElementById('loginForm');
+    const submitBtn = loginForm.querySelector('button[type="submit"]');
+    
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = message;
+    }
+    
+    // Disable Google sign in button
+    const googleBtn = document.querySelector('[onclick="handleGoogleSignIn()"]');
+    if (googleBtn) {
+        googleBtn.disabled = true;
+    }
+}
+
+/**
+ * Hide loading state
+ */
+function hideLoading() {
+    const loginForm = document.getElementById('loginForm');
+    const submitBtn = loginForm.querySelector('button[type="submit"]');
+    
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'sign in';
+    }
+    
+    // Re-enable Google sign in button
+    const googleBtn = document.querySelector('[onclick="handleGoogleSignIn()"]');
+    if (googleBtn) {
+        googleBtn.disabled = false;
     }
 }
 
@@ -124,12 +159,19 @@ function showLoginError(message) {
     }, 5000);
 }
 
-// Check if user is already logged in
-document.addEventListener('DOMContentLoaded', function() {
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            // User is already signed in, redirect to home
-            window.location.href = 'index.html';
-        }
-    });
-});
+/**
+ * Clear any error/success messages
+ */
+function clearMessages() {
+    const errorDiv = document.getElementById('loginError');
+    const successDiv = document.getElementById('loginSuccess');
+    
+    if (errorDiv) errorDiv.classList.add('d-none');
+    if (successDiv) successDiv.classList.add('d-none');
+}
+
+// Export functions to global scope for HTML onclick handlers
+window.handleGoogleSignIn = handleGoogleSignIn;
+window.clearMessages = clearMessages;
+
+console.log('🔐 Login page initialized with auth-manager');
