@@ -63,7 +63,6 @@ export async function createNotification(notificationData) {
             id: notificationId,
             userId: notificationData.userId,
             type: notificationData.type,
-            message: notificationData.message,
             fromUserId: notificationData.fromUserId,
             relatedId: notificationData.relatedId,
             actionUrl: notificationData.actionUrl,
@@ -71,6 +70,11 @@ export async function createNotification(notificationData) {
             read: false,
             createdAt: serverTimestamp()
         };
+        
+        // Only include message if it's provided and not undefined
+        if (notificationData.message !== undefined && notificationData.message !== null) {
+            notification.message = notificationData.message;
+        }
         
         // Use setDoc to maintain ID consistency
         const notificationRef = doc(db, 'notifications', notificationId);

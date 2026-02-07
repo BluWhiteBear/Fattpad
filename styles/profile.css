@@ -117,33 +117,29 @@
     background-color: var(--bg-secondary) !important;
     border-color: var(--text-secondary) !important;
     color: var(--text-secondary) !important;
+    position: relative;
 }
 
 .follow-btn.following:hover {
     background-color: var(--accent-color) !important;
     border-color: var(--accent-color) !important;
     color: var(--text-primary) !important;
+    color: transparent !important; /* Hide original text */
 }
 
 .follow-btn.following:hover .fas::before {
     content: "\f00d"; /* X icon */
 }
 
-.follow-btn.following:hover {
-    /* Show "Unfollow" text on hover */
-}
-
 .follow-btn.following:hover::after {
-    content: " Unfollow";
+    content: "Unfollow";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-primary);
 }
 
-.follow-btn.following span {
-    display: none;
-}
-
-.follow-btn.following:hover span {
-    display: none;
-}
 
 /* Clickable stats styling */
 .stat-link {
