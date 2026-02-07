@@ -11,6 +11,7 @@ import {
     signInWithPopup,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    updateProfile,
     GoogleAuthProvider 
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { 
@@ -219,10 +220,18 @@ class AuthenticationManager {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             console.log('✅ Email sign-in successful');
-            return userCredential;
+            return {
+                success: true,
+                user: userCredential.user,
+                userCredential
+            };
         } catch (error) {
             console.error('❌ Email sign-in failed:', error);
-            throw error;
+            return {
+                success: false,
+                error: error.message,
+                errorCode: error.code
+            };
         }
     }
 
@@ -245,10 +254,18 @@ class AuthenticationManager {
             }
             
             console.log('✅ Email sign-up successful');
-            return userCredential;
+            return {
+                success: true,
+                user: userCredential.user,
+                userCredential
+            };
         } catch (error) {
             console.error('❌ Email sign-up failed:', error);
-            throw error;
+            return {
+                success: false,
+                error: error.message,
+                errorCode: error.code
+            };
         }
     }
 
@@ -259,16 +276,30 @@ class AuthenticationManager {
     async signInWithGoogle() {
         try {
             const provider = new GoogleAuthProvider();
+            // Force account selection every time and ensure fresh authentication
             provider.setCustomParameters({
-                prompt: 'select_account'
+                prompt: 'select_account',
+                access_type: 'offline'
             });
+            
+            // Add additional scopes if needed
+            provider.addScope('profile');
+            provider.addScope('email');
             
             const userCredential = await signInWithPopup(auth, provider);
             console.log('✅ Google sign-in successful');
-            return userCredential;
+            return {
+                success: true,
+                user: userCredential.user,
+                userCredential
+            };
         } catch (error) {
             console.error('❌ Google sign-in failed:', error);
-            throw error;
+            return {
+                success: false,
+                error: error.message,
+                errorCode: error.code
+            };
         }
     }
 
