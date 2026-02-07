@@ -62,6 +62,7 @@ export async function createNotification(notificationData) {
             window.updateNotificationBadge(notificationData.userId);
         }
         
+        console.log(`✅ ${notificationData.type} notification created for user ${notificationData.userId}`);
         return notificationId;
         
     } catch (error) {
@@ -156,7 +157,7 @@ export const NotificationTypes = {
         return createNotification({
             userId: storyAuthorId,
             type: 'like',
-            message: `${likerName} liked your story "${storyTitle}"`,
+            message: `${likerName} took a bite out of your story "${storyTitle}"`,
             fromUserId: likerUserId,
             fromUserName: likerName,
             relatedId: storyId,
@@ -174,7 +175,7 @@ export const NotificationTypes = {
         return createNotification({
             userId: commentAuthorId,
             type: 'like',
-            message: `${likerName} liked your comment`,
+            message: `${likerName} took a bite out of your comment`,
             fromUserId: likerUserId,
             fromUserName: likerName,
             relatedId: storyId,
@@ -332,6 +333,46 @@ export function getTimeAgo(date) {
 }
 
 /**
+ * Get notification icon based on type
+ * @param {string} type - Notification type
+ * @returns {string} - Icon HTML (Font Awesome or custom SVG)
+ */
+function getNotificationIcon(type) {
+    switch (type) {
+        case 'follow':
+            return '<i class="fas fa-user-plus"></i>';
+        case 'like':
+            return '<img src="img/bite_1.svg" alt="Bite" style="width: 16px; height: 16px;">';
+        case 'comment':
+            return '<i class="fas fa-comment"></i>';
+        case 'reply':
+            return '<i class="fas fa-reply"></i>';
+        default:
+            return '<i class="fas fa-bell"></i>';
+    }
+}
+
+/**
+ * Get notification icon color based on type
+ * @param {string} type - Notification type
+ * @returns {string} - CSS color value
+ */
+function getNotificationIconColor(type) {
+    switch (type) {
+        case 'follow':
+            return '#28a745'; // Green
+        case 'like':
+            return 'inherit'; // Let SVG use its own colors
+        case 'comment':
+            return '#007bff'; // Blue
+        case 'reply':
+            return '#6c757d'; // Gray
+        default:
+            return '#6c757d'; // Default gray
+    }
+}
+
+/**
  * Create a notification DOM element
  * @param {Object} notification - Notification data
  * @returns {HTMLElement} - DOM element for the notification
@@ -361,7 +402,7 @@ export function createNotificationElement(notification) {
                 notificationText = `${notification.fromUserName || notification.data?.followerName || 'Someone'} started following you`;
                 break;
             case 'like':
-                notificationText = `${notification.fromUserName || 'Someone'} liked your story "${notification.data?.storyTitle || 'your story'}"`;
+                notificationText = `${notification.fromUserName || 'Someone'} took a bite out of your story "${notification.data?.storyTitle || 'your story'}"`;
                 break;
             case 'comment':
                 notificationText = `${notification.fromUserName || 'Someone'} commented on your story`;
@@ -421,10 +462,18 @@ export function createNotificationElement(notification) {
     }
     
     // Build notification HTML
+    const iconHtml = getNotificationIcon(notification.type);
+    const iconColor = getNotificationIconColor(notification.type);
+    
     notificationDiv.innerHTML = `
         <div class="notification-content">
-            <div class="notification-text">${notificationText}</div>
-            <div class="notification-time">${timeAgo}</div>
+            <div class="notification-icon" style="color: ${iconColor}">
+                ${iconHtml}
+            </div>
+            <div class="notification-body">
+                <div class="notification-text">${notificationText}</div>
+                <div class="notification-time">${timeAgo}</div>
+            </div>
         </div>
         ${!notification.read ? '<div class="notification-badge unread"></div>' : ''}
     `;
