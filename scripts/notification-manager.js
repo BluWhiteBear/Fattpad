@@ -528,7 +528,7 @@ export async function toggleNotificationsDropdown() {
             </div>
         </div>
         <div class="notifications-footer">
-            <button class="view-all-btn">View All Notifications</button>
+            <button class="view-all-btn" onclick="window.location.href='notifications.html'">View All Notifications</button>
         </div>
     `;
 

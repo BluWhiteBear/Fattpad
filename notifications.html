@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fattpad | Notifications</title>
+        <link rel="icon" href="img/fattpad_logo_1_no_text.png" type="image/png">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <script src="scripts/themeLoader.js"></script>
+    </head>
+    <body class="d-flex flex-column min-vh-100">
+        <!-- Nav Bar -->
+        <div id="navbar-container"></div>
+        
+        <main class="container-xl flex-grow-1 py-4">
+            <!-- Notifications Header -->
+            <div class="bg-secondary rounded-3 p-4 mb-4 shadow">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h1 class="h2 text-light mb-0">
+                            <i class="fas fa-bell me-2"></i>
+                            Notifications
+                        </h1>
+                    </div>
+                    <div class="col-auto">
+                        <button id="mark-all-read-btn" class="btn btn-outline-danger" style="display: none;">
+                            <i class="fas fa-check-double me-1"></i>
+                            Mark All Read
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Content -->
+            <div class="bg-secondary rounded-3 shadow">
+                <!-- Filter Tabs -->
+                <div class="notifications-tabs p-3 border-bottom border-secondary">
+                    <div class="btn-group" role="group" aria-label="Notification filters">
+                        <button type="button" class="btn btn-outline-light active" data-filter="all">
+                            All
+                        </button>
+                        <button type="button" class="btn btn-outline-light" data-filter="unread">
+                            Unread
+                        </button>
+                        <button type="button" class="btn btn-outline-light" data-filter="follow">
+                            Follows
+                        </button>
+                        <button type="button" class="btn btn-outline-light" data-filter="like">
+                            Likes
+                        </button>
+                        <button type="button" class="btn btn-outline-light" data-filter="comment">
+                            Comments
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Notifications List -->
+                <div id="notifications-container" class="notifications-page-list">
+                    <!-- Loading state -->
+                    <div id="loading-notifications" class="text-center py-5">
+                        <div class="spinner-border text-danger" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted mt-3 mb-0">Loading your notifications...</p>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div id="empty-notifications" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-bell-slash fa-3x text-muted mb-3" style="opacity: 0.5;"></i>
+                        <h5 class="text-muted">No notifications yet</h5>
+                        <p class="text-muted mb-0">When people follow you or interact with your stories, you'll see notifications here.</p>
+                    </div>
+
+                    <!-- Error state -->
+                    <div id="error-notifications" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                        <h5 class="text-muted">Failed to load notifications</h5>
+                        <button class="btn btn-outline-danger" onclick="loadNotificationsPage()">
+                            <i class="fas fa-redo me-1"></i>
+                            Try Again
+                        </button>
+                    </div>
+
+                    <!-- Notifications will be inserted here -->
+                    <div id="notifications-list"></div>
+                </div>
+
+                <!-- Load More Button -->
+                <div class="text-center p-4" id="load-more-container" style="display: none;">
+                    <button id="load-more-btn" class="btn btn-outline-danger">
+                        <i class="fas fa-chevron-down me-1"></i>
+                        Load More
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <div id="footer-container"></div>
+
+        <!-- Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script type="module" src="scripts/script.js" defer></script>
+        <script type="module" src="scripts/notifications-page.js" defer></script>
+    </body>
+</html>
