@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function initAuthStateListener() {
     // Check if user is already logged in and redirect
-    authManager.onAuthStateChanged((user) => {
+    authManager.onAuthStateChange((user) => {
         if (user) {
             console.log('✅ User already authenticated, redirecting to home');
             window.location.href = 'index.html';
