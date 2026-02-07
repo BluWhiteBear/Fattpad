@@ -1,30 +1,23 @@
 // Profile page functionality with Firebase integration
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { firebaseConfig } from '../config/firebase-config-public.js';
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-let currentUser = null;
-let currentUserProfile = null;
+import { db } from './firebase-config.js';
+import { NotificationTypes } from './notification-manager.js';
+import authManager from './auth-manager.js';
 
 // Initialize profile page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     setupEventListeners();
     
-    // Get user ID from URL parameter if present
+    // Get user ID from URL parameter if present  
     const urlParams = new URLSearchParams(window.location.search);
     const profileUserId = urlParams.get('userId');
     
-    // Wait for auth state
-    onAuthStateChanged(auth, (user) => {
+    // Wait for authentication to initialize
+    await authManager.waitForAuth();
+    
+    // Set up auth state listener
+    authManager.onAuthStateChange((user, previousUser) => {
         if (user) {
-            currentUser = user;
-            
             if (profileUserId) {
                 // Load specific user's profile (public view)
                 console.log('🔍 Loading profile for user:', profileUserId);
@@ -35,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Load current user's own profile
                 console.log('👤 Loading own profile');
                 loadUserProfile(user.uid, true); // true = own profile
-                loadUserWorks(user.uid, true); // true = own profile
+                loadUserWorks(user.uid, true); // true = own profile  
                 loadUserStats(user.uid);
                 // Migrate any stories with local_user authorId
                 migrateLocalUserStories(user.uid);
@@ -91,11 +84,12 @@ function switchTab(tabName) {
     // Get URL parameters to maintain context
     const urlParams = new URLSearchParams(window.location.search);
     const profileUserId = urlParams.get('userId');
-    const isOwnProfile = !profileUserId || profileUserId === currentUser.uid;
+    const currentUser = authManager.getCurrentUser();
+    const isOwnProfile = !profileUserId || (currentUser && profileUserId === currentUser.uid);
     
     // Load tab-specific data
     if (tabName === 'works') {
-        loadUserWorks(profileUserId || currentUser.uid, isOwnProfile);
+        loadUserWorks(profileUserId || currentUser?.uid, isOwnProfile);
     }
 }
 
@@ -199,7 +193,6 @@ function displayUserProfile(isOwnProfile = true) {
     
     // Update profile info
     document.getElementById('profile-name').textContent = currentUserProfile.displayName;
-    document.getElementById('profile-email').textContent = currentUserProfile.email;
     document.getElementById('profile-bio').textContent = currentUserProfile.bio || (isOwnProfile ? 'No bio yet. Click Edit Profile to add one!' : 'This user hasn\'t written a bio yet.');
     
     // Show/hide edit controls based on whether it's the user's own profile
@@ -757,30 +750,7 @@ function setupStatLinks() {
     });
 }
 
-/**
- * Create a notification for a user
- */
-async function createNotification(userId, type, data) {
-    try {
-        const notificationId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const notificationRef = doc(db, 'notifications', notificationId);
-        
-        const notification = {
-            id: notificationId,
-            userId: userId, // User who will receive the notification
-            type: type, // 'follow', 'like', 'comment', etc.
-            data: data, // Additional data specific to notification type
-            read: false,
-            createdAt: new Date()
-        };
-        
-        await setDoc(notificationRef, notification);
-        console.log('✅ Notification created:', notification);
-        
-    } catch (error) {
-        console.error('❌ Error creating notification:', error);
-    }
-}
+
 
 /**
  * Check if current user is following the profile user
@@ -863,11 +833,11 @@ async function toggleFollow(targetUserId) {
             });
             
             // Create notification for the user being followed
-            await createNotification(targetUserId, 'follow', {
-                followerId: currentUser.uid,
-                followerName: currentUser.displayName || currentUser.email || 'Someone',
-                followerPhotoURL: currentUser.photoURL || null
-            });
+            await NotificationTypes.follow(
+                targetUserId,
+                currentUser.uid,
+                currentUser.displayName || 'Anonymous User'
+            );
             
             // Update both users' stats
             await Promise.all([

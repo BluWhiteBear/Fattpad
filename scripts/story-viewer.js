@@ -3,6 +3,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, query, where, orderBy, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { firebaseConfig } from '../config/firebase-config-public.js';
+import { NotificationTypes } from './notification-manager.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -649,7 +650,7 @@ async function handleCommentSubmit(event) {
         const comment = {
             storyId: currentStoryId,
             authorId: currentUser.uid,
-            authorName: currentUser.displayName || currentUser.email || 'Anonymous',
+            authorName: currentUser.displayName || 'Anonymous User',
             content: content,
             createdAt: serverTimestamp(),
             likes: 0,
@@ -661,17 +662,14 @@ async function handleCommentSubmit(event) {
         
         // Create notification for story author
         if (currentStory && currentStory.authorId && currentStory.authorId !== currentUser.uid) {
-            await createNotification({
-                userId: currentStory.authorId,
-                type: 'comment',
-                title: 'New comment on your story',
-                message: `${comment.authorName} commented on "${currentStory.title || 'your story'}": "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
-                relatedId: currentStoryId,
-                relatedType: 'story',
-                actionUrl: `story.html?id=${currentStoryId}`,
-                fromUserId: currentUser.uid,
-                fromUserName: comment.authorName
-            });
+            await NotificationTypes.comment(
+                currentStory.authorId,
+                currentUser.uid,
+                comment.authorName,
+                currentStoryId,
+                currentStory.title || 'your story',
+                doc.id
+            );
         }
         
         // Clear form
@@ -810,11 +808,31 @@ function renderComments(comments, sortBy = 'newest') {
         const commentElement = createCommentElement(comment, repliesByParent[comment.id] || []);
         commentsList.appendChild(commentElement);
     });
+    
+    // Handle URL fragments for direct comment linking (e.g., from notifications)
+    if (window.location.hash) {
+        setTimeout(() => {
+            const targetElement = document.querySelector(window.location.hash);
+            if (targetElement) {
+                targetElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                // Add a subtle highlight to the target comment
+                targetElement.style.backgroundColor = 'rgba(233, 119, 117, 0.1)';
+                targetElement.style.transition = 'background-color 0.3s ease';
+                setTimeout(() => {
+                    targetElement.style.backgroundColor = '';
+                }, 2000);
+            }
+        }, 500); // Wait for DOM to be fully rendered
+    }
 }
 
 function createCommentElement(comment, replies = []) {
     const commentDiv = document.createElement('div');
     commentDiv.className = 'comment';
+    commentDiv.id = `comment-${comment.id}`;
     commentDiv.dataset.commentId = comment.id;
     
     // Format date
@@ -1008,7 +1026,7 @@ window.handleReplySubmit = async function(event, parentCommentId) {
             storyId: currentStoryId,
             parentCommentId: parentCommentId,
             authorId: currentUser.uid,
-            authorName: currentUser.displayName || currentUser.email || 'Anonymous',
+            authorName: currentUser.displayName || 'Anonymous User',
             content: content,
             createdAt: serverTimestamp(),
             likes: 0
@@ -1056,17 +1074,14 @@ window.handleReplySubmit = async function(event, parentCommentId) {
         
         // Create notification if we have a target and it's not the current user
         if (notificationTargetId && notificationTargetId !== currentUser.uid) {
-            await createNotification({
-                userId: notificationTargetId,
-                type: 'reply',
-                title: 'New reply to your comment',
-                message: `${reply.authorName} replied to your comment: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
-                relatedId: parentCommentId,
-                relatedType: 'comment',
-                actionUrl: `story.html?id=${currentStoryId}`,
-                fromUserId: currentUser.uid,
-                fromUserName: reply.authorName
-            });
+            await NotificationTypes.reply(
+                notificationTargetId,
+                currentUser.uid,
+                reply.authorName,
+                currentStoryId,
+                parentCommentId,
+                doc.id
+            );
         }
         
         // Hide reply form and clear content
@@ -1156,40 +1171,4 @@ async function reloadCommentsWithCurrentSort() {
 /**
  * Notification System Functions
  */
-async function createNotification(notificationData) {
-    try {
-        const notification = {
-            ...notificationData,
-            createdAt: serverTimestamp(),
-            read: false,
-            id: null // Will be set by Firestore
-        };
-        
-        await addDoc(collection(db, 'notifications'), notification);
-        console.log('✅ Notification created successfully');
-        
-        // Update notification badge if the function is available
-        if (window.updateNotificationBadge) {
-            window.updateNotificationBadge(notificationData.userId);
-        }
-        
-    } catch (error) {
-        console.error('❌ Error creating notification:', error);
-        // Don't throw - notifications are nice-to-have, not essential
-    }
-}
-
-// Notification types:
-// {
-//   userId: string,           // Who gets the notification
-//   type: 'comment' | 'reply' | 'like' | 'follow',
-//   title: string,            // Notification title
-//   message: string,          // Notification content
-//   relatedId: string,        // ID of related entity (story, comment, etc.)
-//   relatedType: 'story' | 'comment' | 'user',
-//   actionUrl: string,        // URL to navigate when clicked
-//   fromUserId: string,       // Who triggered the notification
-//   fromUserName: string,     // Display name of triggering user
-//   createdAt: timestamp,     // When notification was created
-//   read: boolean            // Whether notification has been read
-// }
+// End of file - notification logic moved to notification-manager.js
