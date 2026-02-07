@@ -658,7 +658,7 @@ async function handleCommentSubmit(event) {
         };
         
         // Add to Firebase
-        await addDoc(collection(db, 'comments'), comment);
+        const commentDocRef = await addDoc(collection(db, 'comments'), comment);
         
         // Create notification for story author
         if (currentStory && currentStory.authorId && currentStory.authorId !== currentUser.uid) {
@@ -668,7 +668,7 @@ async function handleCommentSubmit(event) {
                 comment.authorName,
                 currentStoryId,
                 currentStory.title || 'your story',
-                doc.id
+                commentDocRef.id
             );
         }
         
@@ -1038,7 +1038,7 @@ window.handleReplySubmit = async function(event, parentCommentId) {
         }
         
         // Add to Firebase as a new comment with parentCommentId
-        await addDoc(collection(db, 'comments'), reply);
+        const replyDocRef = await addDoc(collection(db, 'comments'), reply);
         
         // Create notification for the person being replied to
         let notificationTargetId = null;
@@ -1080,7 +1080,7 @@ window.handleReplySubmit = async function(event, parentCommentId) {
                 reply.authorName,
                 currentStoryId,
                 parentCommentId,
-                doc.id
+                replyDocRef.id
             );
         }
         
