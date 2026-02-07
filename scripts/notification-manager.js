@@ -362,7 +362,7 @@ function getNotificationIconColor(type) {
         case 'follow':
             return '#28a745'; // Green
         case 'like':
-            return 'inherit'; // Let SVG use its own colors
+            return '#ffffff'; // Let SVG use its own colors
         case 'comment':
             return '#007bff'; // Blue
         case 'reply':
