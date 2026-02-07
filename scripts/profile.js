@@ -97,10 +97,11 @@ function switchTab(tabName) {
  * Helper function to get current profile context
  */
 function getCurrentProfileContext() {
+    const currentUser = authManager.getCurrentUser();
     const urlParams = new URLSearchParams(window.location.search);
     const profileUserId = urlParams.get('userId');
     return {
-        userId: profileUserId || currentUser.uid,
+        userId: profileUserId || currentUser?.uid,
         isOwnProfile: !profileUserId || (currentUser && profileUserId === currentUser.uid)
     };
 }
@@ -115,22 +116,24 @@ async function loadUserProfile(userId, isOwnProfile = true) {
         const userDocRef = doc(db, 'users', userId);
         const userDoc = await getDoc(userDocRef);
         
+        let userProfile;
         if (userDoc.exists()) {
-            currentUserProfile = userDoc.data();
-            console.log('✅ Profile loaded:', currentUserProfile);
+            userProfile = userDoc.data();
+            console.log('✅ Profile loaded:', userProfile);
         } else if (isOwnProfile) {
             // Create profile if it doesn't exist (only for own profile)
             console.log('📝 Creating new user profile...');
-            currentUserProfile = await createUserProfile(userId);
+            userProfile = await authManager.loadUserProfile(userId);
         } else {
             // Profile doesn't exist and it's not the current user's profile
             showError('Profile not found');
             return;
         }
         
-        displayUserProfile(isOwnProfile);
+        displayUserProfile(isOwnProfile, userProfile);
         
         // Check follow status if viewing someone else's profile
+        const currentUser = authManager.getCurrentUser();
         if (!isOwnProfile && currentUser) {
             await checkFollowStatus(userId);
         }
@@ -177,23 +180,25 @@ async function createUserProfile(userId) {
 /**
  * Display user profile information
  */
-function displayUserProfile(isOwnProfile = true) {
-    if (!currentUserProfile) return;
+function displayUserProfile(isOwnProfile = true, userProfile = null) {
+    if (!userProfile) return;
+    
+    const currentUser = authManager.getCurrentUser();
     
     // Update profile picture
     const profilePicture = document.getElementById('profile-picture');
     if (isOwnProfile) {
         // For own profile, check both profile and auth photoURL
-        profilePicture.src = currentUserProfile.photoURL || currentUser.photoURL || 'img/pfp-default.png';
+        profilePicture.src = userProfile.photoURL || currentUser?.photoURL || 'img/pfp-default.png';
     } else {
         // For other users' profiles, only check their profile photoURL
-        profilePicture.src = currentUserProfile.photoURL || 'img/pfp-default.png';
+        profilePicture.src = userProfile.photoURL || 'img/pfp-default.png';
     }
-    profilePicture.alt = currentUserProfile.displayName;
+    profilePicture.alt = userProfile.displayName;
     
     // Update profile info
-    document.getElementById('profile-name').textContent = currentUserProfile.displayName;
-    document.getElementById('profile-bio').textContent = currentUserProfile.bio || (isOwnProfile ? 'No bio yet. Click Edit Profile to add one!' : 'This user hasn\'t written a bio yet.');
+    document.getElementById('profile-name').textContent = userProfile.displayName;
+    document.getElementById('profile-bio').textContent = userProfile.bio || (isOwnProfile ? 'No bio yet. Click Edit Profile to add one!' : 'This user hasn\'t written a bio yet.');
     
     // Show/hide edit controls based on whether it's the user's own profile
     const editProfileBtn = document.querySelector('.edit-profile-btn');
@@ -207,7 +212,7 @@ function displayUserProfile(isOwnProfile = true) {
     if (followBtn) {
         followBtn.style.display = isOwnProfile ? 'none' : 'inline-block';
         if (!isOwnProfile) {
-            followBtn.addEventListener('click', () => toggleFollow(currentUserProfile.uid));
+            followBtn.addEventListener('click', () => toggleFollow(userProfile.uid));
         }
     }
     if (editAvatarBtn) {
@@ -218,7 +223,7 @@ function displayUserProfile(isOwnProfile = true) {
     }
     
     // Update page title
-    const title = isOwnProfile ? 'My Profile - Fattpad' : `${currentUserProfile.displayName} - Fattpad`;
+    const title = isOwnProfile ? 'My Profile - Fattpad' : `${userProfile.displayName} - Fattpad`;
     document.title = title;
 }
 
@@ -227,7 +232,8 @@ function displayUserProfile(isOwnProfile = true) {
  */
 async function loadUserStats(userId = null) {
     try {
-        const targetUserId = userId || currentUser.uid;
+        const currentUser = authManager.getCurrentUser();
+        const targetUserId = userId || currentUser?.uid;
         
         // Get user profile to access followers/following stats
         const userDocRef = doc(db, 'users', targetUserId);
@@ -279,6 +285,7 @@ async function loadUserStats(userId = null) {
         setupStatLinks();
         
         // Update stats in profile document
+        const currentUserProfile = await authManager.getCurrentUserProfile();
         if (currentUserProfile) {
             currentUserProfile.stats = {
                 ...currentUserProfile.stats,
@@ -288,7 +295,7 @@ async function loadUserStats(userId = null) {
             };
             
             // Update Firestore document
-            await updateDoc(doc(db, 'users', currentUser.uid), {
+            await updateDoc(doc(db, 'users', currentUser?.uid), {
                 'stats.worksCount': storiesSnapshot.size,
                 'stats.totalReads': totalReads,
                 'stats.totalLikes': totalLikes
@@ -305,7 +312,14 @@ async function loadUserStats(userId = null) {
  */
 async function loadUserWorks(userId = null, isOwnProfile = true) {
     try {
-        const targetUserId = userId || currentUser.uid;
+        const currentUser = authManager.getCurrentUser();
+        const targetUserId = userId || currentUser?.uid;
+        
+        if (!targetUserId) {
+            console.warn('No user ID provided and no current user');
+            return;
+        }
+        
         console.log('📚 Loading user works for:', targetUserId, 'isOwnProfile:', isOwnProfile);
         
         // Load published/unpublished stories from Firebase
@@ -467,10 +481,17 @@ function createWorkCard(story, storyId, isOwnProfile = true, source = 'firebase'
 /**
  * Edit profile functionality
  */
-function editProfile() {
+async function editProfile() {
     console.log('editProfile function called');
-    const bio = currentUserProfile?.bio || '';
-    const displayName = currentUserProfile?.displayName || '';
+    
+    const currentUserProfile = await authManager.getCurrentUserProfile();
+    if (!currentUserProfile) {
+        showError('Unable to load user profile');
+        return;
+    }
+    
+    const bio = currentUserProfile.bio || '';
+    const displayName = currentUserProfile.displayName || '';
     
     console.log('Creating modal with bio:', bio, 'displayName:', displayName);
     
@@ -534,6 +555,12 @@ async function saveProfileChanges() {
             return;
         }
         
+        const currentUser = authManager.getCurrentUser();
+        if (!currentUser) {
+            showError('User not authenticated');
+            return;
+        }
+        
         // Update Firestore
         await updateDoc(doc(db, 'users', currentUser.uid), {
             displayName: displayName,
@@ -546,7 +573,7 @@ async function saveProfileChanges() {
         currentUserProfile.bio = bio;
         
         // Refresh display
-        displayUserProfile();
+        displayUserProfile(true, currentUserProfile);
         
         // Close modal
         document.querySelector('.modal-overlay').remove();
@@ -581,6 +608,8 @@ window.viewWork = function(storyId) {
 window.deleteWork = async function(storyId, title) {
     if (confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
         try {
+            const currentUser = authManager.getCurrentUser();
+            
             // Show loading state
             const deleteButton = event.target;
             const originalText = deleteButton.textContent;
@@ -728,6 +757,7 @@ function setupStatLinks() {
     newStatLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
+            const currentUser = authManager.getCurrentUser();
             const statType = link.getAttribute('data-stat');
             const urlParams = new URLSearchParams(window.location.search);
             const profileUserId = urlParams.get('userId') || currentUser?.uid;
@@ -756,6 +786,7 @@ function setupStatLinks() {
  * Check if current user is following the profile user
  */
 async function checkFollowStatus(targetUserId) {
+    const currentUser = authManager.getCurrentUser();
     if (!currentUser || !targetUserId) return;
     
     try {
@@ -894,6 +925,7 @@ function editLocalWork(storyId) {
 function deleteLocalWork(storyId, storyTitle) {
     if (confirm(`Are you sure you want to delete "${storyTitle}"? This action cannot be undone.`)) {
         try {
+            const currentUser = authManager.getCurrentUser();
             const stories = JSON.parse(localStorage.getItem('fattpad_stories') || '[]');
             const updatedStories = stories.filter(story => story.id !== storyId);
             localStorage.setItem('fattpad_stories', JSON.stringify(updatedStories));
