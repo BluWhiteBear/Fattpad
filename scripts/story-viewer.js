@@ -379,7 +379,6 @@ async function handleLike() {
                     await NotificationTypes.like(
                         currentStory.authorId,
                         auth.currentUser.uid,
-                        auth.currentUser.displayName || 'Anonymous User',
                         currentStoryId,
                         currentStory.title || 'Untitled Story'
                     );
@@ -676,7 +675,6 @@ async function handleCommentSubmit(event) {
             await NotificationTypes.comment(
                 currentStory.authorId,
                 currentUser.uid,
-                comment.authorName,
                 currentStoryId,
                 currentStory.title || 'your story',
                 commentDocRef.id
@@ -972,7 +970,6 @@ window.likeComment = async function(commentId) {
             await NotificationTypes.commentLike(
                 commentAuthorId,
                 currentUser.uid,
-                currentUser.displayName || 'Anonymous User',
                 currentStoryId,
                 commentId
             );
@@ -1108,7 +1105,6 @@ window.handleReplySubmit = async function(event, parentCommentId) {
             await NotificationTypes.reply(
                 notificationTargetId,
                 currentUser.uid,
-                reply.authorName,
                 currentStoryId,
                 parentCommentId,
                 replyDocRef.id

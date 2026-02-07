@@ -866,8 +866,7 @@ async function toggleFollow(targetUserId) {
             // Create notification for the user being followed
             await NotificationTypes.follow(
                 targetUserId,
-                currentUser.uid,
-                currentUser.displayName || 'Anonymous User'
+                currentUser.uid
             );
             
             // Update both users' stats

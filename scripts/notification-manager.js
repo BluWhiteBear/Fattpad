@@ -11,6 +11,7 @@ import {
     setDoc,
     updateDoc,
     getDocs, 
+    getDoc,
     query, 
     where, 
     orderBy, 
@@ -20,13 +21,34 @@ import {
 import { auth, db } from './firebase-config.js';
 
 /**
+ * Get user display name by userId
+ * @param {string} userId - User ID
+ * @returns {Promise<string>} - User display name
+ */
+export async function getUserDisplayName(userId) {
+    if (!userId) return 'Someone';
+    
+    try {
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        
+        if (userDoc.exists()) {
+            const profile = userDoc.data();
+            return profile.displayName || 'Anonymous User';
+        }
+        return 'Anonymous User';
+    } catch (error) {
+        console.warn('Failed to fetch user display name:', error);
+        return 'Someone';
+    }
+}
+
+/**
  * Create a notification in the database
  * @param {Object} notificationData - Notification data
  * @param {string} notificationData.userId - User who will receive the notification
  * @param {string} notificationData.type - Notification type ('follow', 'like', 'comment', 'reply')
  * @param {string} [notificationData.message] - Custom message text
  * @param {string} [notificationData.fromUserId] - User who triggered the notification
- * @param {string} [notificationData.fromUserName] - Display name of user who triggered notification
  * @param {string} [notificationData.relatedId] - Related entity ID (story ID, comment ID, etc.)
  * @param {string} [notificationData.actionUrl] - URL to navigate when notification is clicked
  * @param {Object} [notificationData.data] - Additional data for the notification
@@ -43,7 +65,6 @@ export async function createNotification(notificationData) {
             type: notificationData.type,
             message: notificationData.message,
             fromUserId: notificationData.fromUserId,
-            fromUserName: notificationData.fromUserName,
             relatedId: notificationData.relatedId,
             actionUrl: notificationData.actionUrl,
             data: notificationData.data || {},
@@ -84,7 +105,6 @@ export async function createNotificationLegacy(userId, type, data) {
         type,
         data,
         fromUserId: data.followerId || data.fromUserId,
-        fromUserName: data.followerName || data.fromUserName,
         relatedId: data.storyId || data.relatedId,
         actionUrl: data.actionUrl
     });
@@ -97,17 +117,14 @@ export const NotificationTypes = {
     /**
      * Create a follow notification
      */
-    async follow(targetUserId, followerUserId, followerName) {
+    async follow(targetUserId, followerUserId) {
         return createNotification({
             userId: targetUserId,
             type: 'follow',
-            message: `${followerName} started following you`,
             fromUserId: followerUserId,
-            fromUserName: followerName,
             actionUrl: `profile.html?uid=${followerUserId}`,
             data: {
-                followerId: followerUserId,
-                followerName: followerName
+                followerId: followerUserId
             }
         });
     },
@@ -115,13 +132,11 @@ export const NotificationTypes = {
     /**
      * Create a comment notification
      */
-    async comment(storyAuthorId, commenterUserId, commenterName, storyId, storyTitle, commentId) {
+    async comment(storyAuthorId, commenterUserId, storyId, storyTitle, commentId) {
         return createNotification({
             userId: storyAuthorId,
             type: 'comment',
-            message: `${commenterName} commented on your story`,
             fromUserId: commenterUserId,
-            fromUserName: commenterName,
             relatedId: storyId,
             actionUrl: `story.html?id=${storyId}#comment-${commentId}`,
             data: {
@@ -134,13 +149,11 @@ export const NotificationTypes = {
     /**
      * Create a reply notification
      */
-    async reply(originalCommenterUserId, replierUserId, replierName, storyId, commentId, replyId) {
+    async reply(originalCommenterUserId, replierUserId, storyId, commentId, replyId) {
         return createNotification({
             userId: originalCommenterUserId,
             type: 'reply',
-            message: `${replierName} replied to your comment`,
             fromUserId: replierUserId,
-            fromUserName: replierName,
             relatedId: storyId,
             actionUrl: `story.html?id=${storyId}#comment-${replyId}`,
             data: {
@@ -153,13 +166,11 @@ export const NotificationTypes = {
     /**
      * Create a like notification
      */
-    async like(storyAuthorId, likerUserId, likerName, storyId, storyTitle) {
+    async like(storyAuthorId, likerUserId, storyId, storyTitle) {
         return createNotification({
             userId: storyAuthorId,
             type: 'like',
-            message: `${likerName} took a bite out of your story "${storyTitle}"`,
             fromUserId: likerUserId,
-            fromUserName: likerName,
             relatedId: storyId,
             actionUrl: `story.html?id=${storyId}`,
             data: {
@@ -171,13 +182,11 @@ export const NotificationTypes = {
     /**
      * Create a comment like notification
      */
-    async commentLike(commentAuthorId, likerUserId, likerName, storyId, commentId) {
+    async commentLike(commentAuthorId, likerUserId, storyId, commentId) {
         return createNotification({
             userId: commentAuthorId,
             type: 'like',
-            message: `${likerName} took a bite out of your comment`,
             fromUserId: likerUserId,
-            fromUserName: likerName,
             relatedId: storyId,
             actionUrl: `story.html?id=${storyId}#comment-${commentId}`,
             data: {
@@ -375,9 +384,9 @@ function getNotificationIconColor(type) {
 /**
  * Create a notification DOM element
  * @param {Object} notification - Notification data
- * @returns {HTMLElement} - DOM element for the notification
+ * @returns {Promise<HTMLElement>} - DOM element for the notification
  */
-export function createNotificationElement(notification) {
+export async function createNotificationElement(notification) {
     const notificationDiv = document.createElement('div');
     notificationDiv.className = `notification-item ${!notification.read ? 'unread' : ''}`;
     
@@ -392,27 +401,29 @@ export function createNotificationElement(notification) {
         timeAgo = 'Recently';
     }
     
-    // Generate notification text and action URL based on type
-    if (notification.message) {
-        notificationText = notification.message;
-    } else {
-        // Fallback for older notifications
-        switch (notification.type) {
-            case 'follow':
-                notificationText = `${notification.fromUserName || notification.data?.followerName || 'Someone'} started following you`;
-                break;
-            case 'like':
-                notificationText = `${notification.fromUserName || 'Someone'} took a bite out of your story "${notification.data?.storyTitle || 'your story'}"`;
-                break;
-            case 'comment':
-                notificationText = `${notification.fromUserName || 'Someone'} commented on your story`;
-                break;
-            case 'reply':
-                notificationText = `${notification.fromUserName || 'Someone'} replied to your comment`;
-                break;
-            default:
-                notificationText = 'New notification';
-        }
+    // Get current display name of the user who triggered the notification
+    const fromUserName = await getUserDisplayName(notification.fromUserId);
+    
+    // Generate notification text based on type
+    switch (notification.type) {
+        case 'follow':
+            notificationText = `${fromUserName} started following you`;
+            break;
+        case 'like':
+            if (notification.data?.commentId) {
+                notificationText = `${fromUserName} took a bite out of your comment`;
+            } else {
+                notificationText = `${fromUserName} took a bite out of your story "${notification.data?.storyTitle || 'your story'}"`;
+            }
+            break;
+        case 'comment':
+            notificationText = `${fromUserName} commented on your story`;
+            break;
+        case 'reply':
+            notificationText = `${fromUserName} replied to your comment`;
+            break;
+        default:
+            notificationText = 'New notification';
     }
     
     // Determine action URL
@@ -561,11 +572,18 @@ async function loadUserNotifications(dropdown, userId) {
         }
 
         let hasUnread = false;
-        notifications.forEach(notification => {
-            if (!notification.read) hasUnread = true;
-            
-            const notificationElement = createNotificationElement(notification);
-            notificationsList.appendChild(notificationElement);
+        
+        // Create notification elements asynchronously
+        const notificationElements = await Promise.all(
+            notifications.map(async notification => {
+                if (!notification.read) hasUnread = true;
+                return await createNotificationElement(notification);
+            })
+        );
+        
+        // Append all notification elements to the list
+        notificationElements.forEach(element => {
+            notificationsList.appendChild(element);
         });
 
         // Show mark all read button if there are unread notifications
@@ -633,6 +651,7 @@ window.NotificationManager = {
     markNotificationAsRead,
     markAllNotificationsRead,
     getUserNotifications,
+    getUserDisplayName,
     getUnreadNotificationCount,
     updateNotificationBadge,
     toggleNotificationsDropdown,
@@ -643,4 +662,5 @@ window.NotificationManager = {
 window.createNotification = createNotification;
 window.markNotificationAsRead = markNotificationAsRead;
 window.updateNotificationBadge = updateNotificationBadge;
+window.getUserDisplayName = getUserDisplayName;
 window.markAllNotificationsRead = markAllReadHandler;
