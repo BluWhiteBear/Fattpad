@@ -52,8 +52,8 @@ function applyTheme(theme) {
 function initSettingsHandlers() {
     const themeSelect = document.getElementById('theme-select');
     const contentRatingSelect = document.getElementById('content-rating');
-    const saveBtn = document.querySelector('.settings-btn.primary');
-    const resetBtn = document.querySelector('.settings-btn.secondary');
+    const saveBtn = document.getElementById('save-btn');
+    const resetBtn = document.getElementById('reset-btn');
     
     // Theme change handler - preview only
     if (themeSelect) {
