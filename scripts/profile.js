@@ -816,6 +816,7 @@ async function checkFollowStatus(targetUserId) {
  * Toggle follow/unfollow for a user
  */
 async function toggleFollow(targetUserId) {
+    const currentUser = authManager.getCurrentUser();
     if (!currentUser || !targetUserId) return;
     
     const followBtn = document.querySelector('.follow-btn');
